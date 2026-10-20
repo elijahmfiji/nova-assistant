@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova AI — Your Personal Assistant</title>
+<style>
+:root {
+  --bg: #0b0d14;
+  --panel: #121622;
+  --line: #272d40;
+  --text: #f1f3fc;
+  --muted: #969db5;
+  --accent: #9b8cff;
+  --accent2: #62d9f7;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, #1c2040 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: Inter, system-ui, Arial, sans-serif;
+}
+.app { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 250px;
+  padding: 26px 18px;
+  border-right: 1px solid var(--line);
+  background: #0d1019;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 42px; height: 42px; border-radius: 14px;
+  display: grid; place-items: center;
+  font-size: 22px; font-weight: 800;
+  color: #101225;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: 0 0 25px #9b8cff40;
+}
+.brand h1 { font-size: 20px; margin: 0; letter-spacing: 1px; }
+.brand small { color: var(--muted); }
+.section-label {
+  color: var(--muted); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+.side-button {
+  background: var(--panel); color: var(--text);
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px; text-align: left; cursor: pointer;
+  font: inherit;
+}
+.side-button:hover { border-color: var(--accent); }
+.sidebar-note {
+  margin-top: auto; font-size: 12px; line-height: 1.6;
+  color: var(--muted);
+}
+.status { display: flex; align-items: center; gap: 7px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #f5c66a; }
+main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  padding: 19px 26px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.topbar strong { font-size: 14px; }
+.topbar span { color: var(--muted); font-size: 12px; }
+.tag {
+  color: var(--accent2); border: 1px solid #62d9f744;
+  background: #62d9f70d; border-radius: 30px;
+  padding: 7px 11px; font-size: 11px;
+}
+.chat {
+  width: 100%; max-width: 850px; margin: 0 auto;
+  padding: 36px 24px 20px; flex: 1;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.welcome { text-align: center; padding: 25px 0 8px; }
+.orb {
+  margin: 0 auto 22px; width: 76px; height: 76px;
+  border-radius: 26px; display: grid; place-items: center;
+  font-size: 35px;
+  background: linear-gradient(135deg, #9b8cff30, #62d9f720);
+  border: 1px solid #9b8cff70;
+  box-shadow: 0 0 55px #9b8cff22;
+}
+.welcome h2 { font-size: clamp(27px, 4vw, 38px); margin: 0 0 12px; }
+.gradient {
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color: transparent; background-clip: text;
+}
+.welcome p { color: var(--muted); line-height: 1.7; margin: 0 auto; max-width: 440px; }
+.suggestions {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px; margin: 12px 0;
+}
+.suggestion {
+  text-align: left; padding: 15px; border-radius: 14px;
+  border: 1px solid var(--line); background: #121622bb;
+  color: var(--text); cursor: pointer; font: inherit;
+}
+.suggestion:hover { border-color: var(--accent); background: #9b8cff0d; }
+.suggestion small { display: block; color: var(--muted); margin-top: 6px; }
+.messages { display: flex; flex-direction: column; gap: 16px; }
+.message { display: flex; gap: 10px; align-items: flex-start; }
+.message.user { flex-direction: row-reverse; }
+.avatar {
+  flex: 0 0 32px; height: 32px; border-radius: 11px;
+  display: grid; place-items: center; font-size: 14px;
+  background: #9b8cff20; border: 1px solid #9b8cff40;
+}
+.user .avatar { background: #62d9f718; border-color: #62d9f744; }
+.bubble {
+  max-width: 82%; white-space: pre-wrap; overflow-wrap: anywhere;
+  padding: 13px 15px; border-radius: 4px 15px 15px 15px;
+  background: var(--panel); border: 1px solid var(--line);
+  line-height: 1.65; font-size: 14px;
+}
+.user .bubble {
+  background: #22203b; border-color: #554b87;
+  border-radius: 15px 4px 15px 15px;
+}
+.composer-wrap { padding: 0 24px 16px; }
+.composer { max-width: 850px; margin: auto; }
+.input-row {
+  display: flex; gap: 10px; padding: 9px;
+  border: 1px solid #343950; background: #121622;
+  border-radius: 17px; box-shadow: 0 8px 35px #0003;
+}
+#prompt {
+  min-width: 0; flex: 1; border: 0; outline: none;
+  resize: none; max-height: 140px; padding: 10px 8px;
+  color: var(--text); background: transparent; font: inherit;
+}
+#prompt::placeholder { color: #777f99; }
+#send {
+  border: 0; border-radius: 12px; width: 44px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #101225; font-size: 19px; cursor: pointer;
+}
+#send:disabled { opacity: .5; cursor: default; }
+.hint { text-align: center; color: var(--muted); font-size: 11px; margin-top: 12px; }
+@media (max-width: 650px) {
+  .sidebar { display: none; }
+  .topbar { padding: 16px; }
+  .chat { padding: 24px 16px; }
+  .composer-wrap { padding: 0 12px 14px; }
+  .suggestions { grid-template-columns: 1fr; }
+  .welcome { padding-top: 15px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">N</div>
+      <div><h1>NOVA</h1><small>Personal AI</small></div>
+    </div>
+    <div class="section-label">Workspace</div>
+    <button class="side-button" id="newChat">＋ &nbsp; New conversation</button>
+    <div class="section-label">Your assistant</div>
+    <div class="side-button" style="cursor:default">
+      ✦ &nbsp; Nova Core
+      <div style="color:var(--muted);font-size:12px;margin:7px 0 0 24px">Your personal space</div>
+    </div>
+    <button class="side-button" id="clearChat">⌫ &nbsp; Clear conversation</button>
+    <div class="sidebar-note">
+      <div class="status"><span class="dot"></span> Starter mode</div>
+      <p>Nova's website is running. Connect an AI service later to enable real AI conversations.</p>
+      <span>Built for you ✦</span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div><strong>Nova Assistant</strong><br><span>Your ideas, one conversation away.</span></div>
+      <div class="tag">✦ PERSONAL ASSISTANT</div>
+    </header>
+
+    <section class="chat">
+      <div class="welcome" id="welcome">
+        <div class="orb">✦</div>
+        <h2>Hey there. I'm <span class="gradient">Nova.</span></h2>
+        <p>Your personal assistant space. Ask a question, plan something, or start with one of these ideas.</p>
+      </div>
+
+      <div class="suggestions" id="suggestions">
+        <button class="suggestion" data-prompt="Help me plan my day">☀️ &nbsp; Plan my day<small>Turn ideas into a clear plan</small></button>
+        <button class="suggestion" data-prompt="Give me a creative project idea">✧ &nbsp; Get creative<small>Find a fun project to try</small></button>
+        <button class="suggestion" data-prompt="Help me learn something new">⌘ &nbsp; Learn something<small>Explore a new topic</small></button>
+        <button class="suggestion" data-prompt="What can you help me with?">◈ &nbsp; Explore Nova<small>See what this starter can do</small></button>
+      </div>
+
+      <div class="messages" id="messages" aria-live="polite"></div>
+    </section>
+
+    <div class="composer-wrap">
+      <div class="composer">
+        <div class="input-row">
+          <textarea id="prompt" rows="1" aria-label="Message Nova" placeholder="Message Nova..."></textarea>
+          <button id="send" aria-label="Send message">↑</button>
+        </div>
+        <div class="hint">Nova starter edition · Don't enter passwords or private information.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const promptBox = document.getElementById("prompt");
+const messages = document.getElementById("messages");
+const welcome = document.getElementById("welcome");
+const suggestions = document.getElementById("suggestions");
+const sendButton = document.getElementById("send");
+
+function addMessage(text, who) {
+  const row = document.createElement("div");
+  row.className = "message " + who;
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = who === "user" ? "Y" : "✦";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = text;
+
+  row.append(avatar, bubble);
+  messages.appendChild(row);
+  row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function getStarterReply(text) {
+  const t = text.toLowerCase();
+
+  if (t.includes("what can you do") || t.includes("help") || t.includes("capabilities")) {
+    return "I'm Nova, your personal assistant website! This starter can chat with simple built-in replies. Next, we can work on connecting a real AI model, adding voice, and creating a memory feature.";
+  }
+  if (t.includes("hello") || t.includes("hey") || t.includes("hi")) {
+    return "Hey! ✨ Welcome in. I'm Nova, your personal assistant. What would you like to work on today?";
+  }
+  if (t.includes("day") || t.includes("plan")) {
+    return "Let's make a plan! Try listing your top three things to do, choose the most important one first, and leave a little time for breaks. What do you want to get done today?";
+  }
+  if (t.includes("creative") || t.includes("project") || t.includes("idea")) {
+    return "Creative mode activated ✨ Try designing your own game character, building a mini website, inventing a fictional world, or creating a playlist around a theme. Which sounds fun?";
+  }
+  if (t.includes("learn") || t.includes("learn something")) {
+    return "Pick a topic you're curious about, learn one key idea, then explain it in your own words. I can help you build a learning plan once we connect a real AI model.";
+  }
+  if (t.includes("name")) {
+    return "Nova it is! A name for your own assistant. Later, we can customize its personality and settings even more.";
+  }
+
+  return "I got your message! ✦ Right now, I'm running in starter mode, so I don't have a real AI model connected yet. Your website is working, though. Our next step is to give me a real AI brain without exposing your API keys.";
+}
+
+function sendMessage(text) {
+  const clean = text.trim();
+  if (!clean) return;
+
+  welcome.style.display = "none";
+  suggestions.style.display = "none";
+  addMessage(clean, "user");
+  promptBox.value = "";
+  promptBox.style.height = "auto";
+  sendButton.disabled = true;
+
+  setTimeout(() => {
+    addMessage(getStarterReply(clean), "assistant");
+    sendButton.disabled = false;
+    promptBox.focus();
+  }, 350);
+}
+
+sendButton.addEventListener("click", () => sendMessage(promptBox.value));
+promptBox.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage(promptBox.value);
+  }
+});
+promptBox.addEventListener("input", () => {
+  promptBox.style.height = "auto";
+  promptBox.style.height = Math.min(promptBox.scrollHeight, 140) + "px";
+});
+document.querySelectorAll("[data-prompt]").forEach(button => {
+  button.addEventListener("click", () => sendMessage(button.dataset.prompt));
+});
+document.getElementById("newChat").addEventListener("click", resetChat);
+document.getElementById("clearChat").addEventListener("click", resetChat);
+
+function resetChat() {
+  messages.replaceChildren();
+  welcome.style.display = "";
+  suggestions.style.display = "";
+  promptBox.value = "";
+  promptBox.focus();
+}
+</script>
+</body>
+</html>

@@ -1,405 +1,227 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#050612">
-<title>Nova — Holographic AI</title>
-<style>
-:root{color-scheme:dark;--bg:#050612;--panel:rgba(13,17,39,.64);--panel2:rgba(17,24,53,.72);--line:rgba(126,161,255,.2);--text:#f4f7ff;--muted:#9ca9cf;--violet:#a18bff;--cyan:#57efff;--pink:#e58bff;--glow:rgba(103,117,255,.32)}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--bg);overflow:hidden}
-button,textarea,select{font:inherit}
-button{color:inherit;cursor:pointer}
-#starfield{position:fixed;inset:0;width:100%;height:100%;z-index:-5}
-.space-wash{position:fixed;inset:-45%;z-index:-4;pointer-events:none;opacity:.68;filter:blur(65px);background:conic-gradient(from 0deg at 50% 50%,transparent 0 12%,#4335ad55 17%,transparent 27%,#04b8d255 39%,transparent 49%,#8d35c955 60%,transparent 73%,#2c66d855 86%,transparent 100%);animation:cosmic 28s linear infinite}
-.space-wash:before,.space-wash:after{content:"";position:absolute;border-radius:50%;inset:18%;background:radial-gradient(ellipse,transparent 10%,#050612 70%);border:1px solid #6f84ff16;transform:rotateX(65deg) rotate(-20deg)}
-.space-wash:after{inset:26%;transform:rotateX(65deg) rotate(35deg);border-color:#48dfff12}
-@keyframes cosmic{to{transform:rotate(360deg) scale(1.08)}}
-.grid-floor{position:fixed;inset:42% -30% -70%;z-index:-3;pointer-events:none;opacity:.13;background-image:linear-gradient(#7388ff45 1px,transparent 1px),linear-gradient(90deg,#7388ff45 1px,transparent 1px);background-size:58px 58px;transform:perspective(350px) rotateX(60deg);mask-image:linear-gradient(transparent,#000 20%,#000 75%,transparent);animation:gridflow 18s linear infinite}
-@keyframes gridflow{to{background-position:0 58px,58px 0}}
-.vignette{position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse at center,transparent 30%,#05061299 100%)}
-.glass{background:linear-gradient(135deg,rgba(22,28,62,.68),rgba(9,13,30,.72));border:1px solid var(--line);box-shadow:inset 0 1px #ffffff0c,0 15px 60px #0005,0 0 30px #6678ff0a;backdrop-filter:blur(24px) saturate(135%);-webkit-backdrop-filter:blur(24px) saturate(135%)}
-.app{height:100%;max-width:1900px;margin:auto;padding:13px;display:grid;grid-template-columns:250px minmax(0,1fr);gap:13px}
-.sidebar{min-height:0;border-radius:23px;display:flex;flex-direction:column;padding:18px 13px;overflow:hidden;position:relative}
-.sidebar:after,.workspace:after{content:"";position:absolute;pointer-events:none;inset:0;border-radius:inherit;background:linear-gradient(125deg,#8e9bff0a,transparent 25%,transparent 70%,#48eaff08);opacity:.8}
-.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 23px}
-.logo{height:41px;width:41px;border-radius:13px;position:relative;display:grid;place-items:center;background:linear-gradient(145deg,#b3a3ff,#6358ed 55%,#2ad7f0);box-shadow:0 0 24px #7e6eff66,0 0 50px #48dcff22;overflow:hidden}
-.logo:before{content:"";position:absolute;inset:-70%;background:linear-gradient(90deg,transparent,#ffffff8c,transparent);transform:rotate(35deg);animation:scan 4s ease-in-out infinite}
-.logo svg{width:23px;z-index:1}
-.brandname{font-size:19px;font-weight:800;letter-spacing:-.7px}
-.brandtag{font-size:9px;letter-spacing:2px;color:#8d9bc5;text-transform:uppercase;margin-top:3px}
-.btn-new{position:relative;z-index:1;display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #8b8cff55;border-radius:13px;background:linear-gradient(100deg,#8370ff26,#39dff515);font-size:12px;font-weight:650;transition:.25s}
-.btn-new:hover{box-shadow:0 0 25px #7b70ff35;transform:translateY(-2px);border-color:#a9a0ff}
-.keyhint{margin-left:auto;color:#7e8bb3;font-size:10px}
-.section-label{padding:24px 10px 9px;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#7280a8}
-.nav{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:11px;color:#aab7da;font-size:12px;border:1px solid transparent;transition:.2s}
-.nav svg{width:16px;height:16px}
-.nav.active,.nav:hover{color:#fff;background:#8c84ff15;border-color:#9d9cff22}
-.nav.active{box-shadow:inset 2px 0 #9c91ff}
-.beta{margin-left:auto;font-size:8px;letter-spacing:1px;color:#81eaff}
-.history{position:relative;z-index:1;overflow:auto;flex:1;min-height:30px}
-.history button{display:block;width:100%;padding:9px 10px;border:0;background:transparent;border-radius:9px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:#a0accd}
-.history button:hover{background:#ffffff0b;color:white}
-.sidefoot{border-top:1px solid var(--line);padding-top:12px;position:relative;z-index:1}
-.status{display:flex;align-items:center;gap:8px;padding:9px 10px;color:#a5b5d8;font-size:11px}
-.statusdot{height:6px;width:6px;border-radius:50%;background:#57f3c0;box-shadow:0 0 12px #57f3c0;animation:blink 2s infinite}
-.workspace{position:relative;min-width:0;min-height:0;border-radius:23px;overflow:hidden;display:flex;flex-direction:column}
-.topbar{height:61px;display:flex;align-items:center;justify-content:space-between;padding:0 21px;border-bottom:1px solid var(--line);background:#070a1b38;flex-shrink:0;position:relative;z-index:2}
-.crumb{display:flex;align-items:center;gap:9px;font-size:11px;color:#8290b8}
-.crumb strong{color:#eef1ff;font-weight:650}
-.tiny-gem{color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
-.top-actions{display:flex;align-items:center;gap:8px}
-.online{display:flex;align-items:center;gap:7px;border:1px solid #68f4cb26;border-radius:100px;padding:7px 10px;color:#a5f5d9;font-size:10px;background:#5af4c808}
-.online .statusdot{height:5px;width:5px}
-.iconbtn{height:34px;width:34px;display:grid;place-items:center;background:#ffffff06;border:1px solid var(--line);border-radius:11px;color:#b8c4e8;transition:.2s}
-.iconbtn:hover{color:white;border-color:#a6a2ff66;background:#a69bff15}
-.iconbtn svg{width:16px;height:16px}
-.main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;z-index:1}
-.welcome{margin:auto;width:min(780px,100%);padding:25px 23px;text-align:center;animation:appear .8s cubic-bezier(.2,.8,.2,1) both}
-.core-wrap{height:146px;width:146px;margin:0 auto 20px;display:grid;place-items:center;position:relative;perspective:500px}
-.core-ring{position:absolute;border:1px solid #8c9aff42;border-radius:50%;inset:3px;transform:rotateX(68deg) rotateZ(0);box-shadow:0 0 20px #737cff15;animation:spin 12s linear infinite}
-.core-ring.r2{inset:14px;border-color:#5beaff45;transform:rotateX(68deg) rotateZ(55deg);animation-duration:8s;animation-direction:reverse}
-.core-ring.r3{inset:0;border-style:dashed;border-color:#bd94ff2d;transform:rotateX(72deg) rotateZ(25deg);animation-duration:24s}
-.core-ring:after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 15px var(--cyan);left:18%;top:20%}
-.core-ring.r2:after{background:var(--pink);box-shadow:0 0 15px var(--pink);left:75%;top:76%}
-.core{height:76px;width:76px;border-radius:26px;display:grid;place-items:center;position:relative;transform:rotate(-8deg);background:linear-gradient(145deg,#b3a2ffdc,#6555f0dd 52%,#37dff0dc);border:1px solid #ffffff7a;box-shadow:0 0 28px #8a78ff8c,0 0 70px #51dffb27,inset 0 0 20px #ffffff36;animation:corefloat 5s ease-in-out infinite;isolation:isolate}
-.core:before{content:"";position:absolute;inset:-12px;border-radius:31px;border:1px solid #a99aff3a;box-shadow:0 0 18px #7f6cff22;animation:breath 3s ease-in-out infinite}
-.core:after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 25%,#ffffff64 48%,transparent 68%);transform:translateX(-120%);animation:corescan 4.5s ease-in-out infinite}
-.core svg{width:36px;height:36px;filter:drop-shadow(0 0 7px #ffffffad)}
-@keyframes spin{to{transform:rotateX(68deg) rotateZ(360deg)}}
-@keyframes corefloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-8px) rotate(3deg)}}
-@keyframes breath{50%{transform:scale(1.13);opacity:.45}}
-@keyframes corescan{0%,55%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
-@keyframes scan{0%,65%{transform:translateX(-160%) rotate(35deg)}100%{transform:translateX(160%) rotate(35deg)}}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid #8f91ff35;background:#8d80ff0c;border-radius:99px;padding:7px 11px;font-size:9px;text-transform:uppercase;letter-spacing:1.8px;color:#c2c4ff;box-shadow:0 0 24px #8b80ff09}
-.eyebrow i{height:5px;width:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
-h1{font-size:clamp(33px,4.4vw,57px);line-height:1.03;letter-spacing:-2.6px;margin:18px 0 14px;font-weight:790}
-.gradient{background:linear-gradient(100deg,#ffffff 5%,#c1b4ff 38%,#70eaff 72%,#e5a0ff 100%);background-size:200% auto;color:transparent;-webkit-background-clip:text;background-clip:text;animation:textflow 8s ease-in-out infinite}
-@keyframes textflow{50%{background-position:100% center}}
-.sub{font-size:13px;color:#9ca9cb;line-height:1.75;max-width:500px;margin:0 auto}
-.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:625px;margin:28px auto 0;text-align:left}
-.card{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:flex-start;gap:11px;padding:14px;border:1px solid #879cff22;border-radius:15px;background:linear-gradient(130deg,#a9a5ff09,#38dcf808);transition:transform .25s,border-color .25s,box-shadow .25s;text-align:left}
-.card:before{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(115deg,transparent 20%,#8f9fff16 48%,transparent 75%);transform:translateX(-130%);transition:transform .7s}
-.card:hover{transform:translateY(-3px);border-color:#8e9cff70;box-shadow:0 8px 28px #566dff13}
-.card:hover:before{transform:translateX(130%)}
-.cardicon{height:33px;width:33px;border:1px solid #a7a0ff2a;border-radius:10px;display:grid;place-items:center;flex-shrink:0;color:#aeb8ff;background:#a49aff0c}
-.cardicon svg{width:17px;height:17px}
-.cardtitle{font-size:11px;font-weight:700;color:#e7eaff;margin-bottom:5px}
-.carddesc{font-size:10px;line-height:1.55;color:#8998bf}
-.messages{flex:1;min-height:0;overflow:auto;padding:28px clamp(15px,5vw,70px);scroll-behavior:smooth}
-.message{display:flex;gap:11px;max-width:850px;margin:0 auto 19px;animation:appear .3s ease both}
-.message.user{flex-direction:row-reverse}
-.avatar{height:29px;width:29px;flex-shrink:0;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;background:#a49aff12;color:var(--cyan);font-size:11px;font-weight:800}
-.message.user .avatar{color:#fff;background:#8e80ff22}
-.bubble{max-width:min(720px,calc(100% - 45px));padding:13px 15px;border:1px solid var(--line);border-radius:5px 15px 15px 15px;background:#10162dc9;color:#e2e8ff;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 6px 25px #0002}
-.message.user .bubble{border-radius:15px 5px 15px 15px;background:linear-gradient(130deg,#6455ad55,#1b7b9b35)}
-.bubble img{display:block;max-width:100%;max-height:460px;border-radius:11px;margin-top:8px}
-.typing{display:flex;gap:5px;padding:7px 0 11px}
-.typing i{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink .9s ease-in-out infinite}
-.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
-@keyframes blink{50%{opacity:.25;transform:scale(.75)}}
-.composer-wrap{padding:10px clamp(12px,4vw,45px) 15px;position:relative;z-index:2;background:linear-gradient(transparent,#070a1bbf 24%)}
-.composer{max-width:900px;margin:auto;border:1px solid #8d9cff38;border-radius:18px;background:linear-gradient(135deg,#151a39dc,#090e21e8);box-shadow:0 0 35px #5c68ff0c,inset 0 1px #ffffff0c;backdrop-filter:blur(25px);transition:border-color .2s,box-shadow .2s}
-.composer:focus-within{border-color:#8c9cff83;box-shadow:0 0 35px #6678ff1c}
-textarea{width:100%;resize:none;outline:none;border:0;background:transparent;color:white;padding:17px 17px 8px;font-size:13px;line-height:1.6;max-height:170px}
-textarea::placeholder{color:#7482aa}
-.composer-bottom{display:flex;align-items:center;justify-content:space-between;padding:5px 9px 9px}
-.tools{display:flex;gap:5px;align-items:center}
-.tool{display:flex;align-items:center;gap:6px;border:1px solid transparent;background:transparent;color:#8999c1;padding:7px 9px;border-radius:9px;font-size:10px;transition:.2s}
-.tool svg{width:14px;height:14px}
-.tool:hover,.tool.selected{border-color:#9c9aff38;background:#8e86ff12;color:#d7d7ff}
-.send{width:36px;height:36px;display:grid;place-items:center;border:1px solid #a8a2ff55;border-radius:12px;background:linear-gradient(140deg,#8b7aff,#5b55d7 60%,#2b9ba9);box-shadow:0 0 20px #7770ff2d;transition:.2s}
-.send:hover{transform:translateY(-2px);box-shadow:0 0 27px #7770ff66}
-.send:disabled{opacity:.45;cursor:wait}
-.send svg{width:17px;height:17px}
-.foot{max-width:900px;margin:9px auto 0;text-align:center;font-size:9px;color:#64749c;letter-spacing:.15px}
-.settings{position:absolute;z-index:5;right:18px;top:70px;width:min(280px,calc(100% - 36px));padding:17px;border-radius:17px;display:none}
-.settings.open{display:block;animation:appear .2s ease both}
-.settings h3{font-size:12px;margin:0 0 14px}
-.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;font-size:11px;color:#b8c4e5}
-.setting select{max-width:145px;border:1px solid var(--line);border-radius:8px;padding:7px;background:#10162b;color:#eaf0ff;font-size:10px}
-.setting input{accent-color:#9b8cff}
-.toast{position:absolute;z-index:10;bottom:115px;left:50%;transform:translate(-50%,10px);padding:10px 15px;border:1px solid var(--line);border-radius:12px;background:#111831eF;backdrop-filter:blur(18px);font-size:11px;color:#e9edff;opacity:0;pointer-events:none;transition:.25s;max-width:calc(100% - 30px);text-align:center}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-[hidden]{display:none!important}
-@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@media(min-width:1300px){.welcome{transform:translateY(-5px)}}
-@media(max-width:760px){.app{padding:7px;grid-template-columns:1fr;gap:7px}.sidebar{display:none}.workspace{border-radius:17px}.topbar{height:52px;padding:0 13px}.welcome{padding:15px 10px}.core-wrap{height:112px;width:112px;margin-bottom:15px}.core{height:65px;width:65px;border-radius:22px}.cards{margin-top:20px;gap:8px}.card{padding:10px;gap:8px}.cardicon{width:29px;height:29px}.cardtitle{font-size:10px}.carddesc{font-size:9px}h1{letter-spacing:-1.5px}.sub{font-size:12px}.composer-wrap{padding:8px 10px 10px}.foot{font-size:8px}.messages{padding:20px 10px}.online{font-size:9px}.settings{top:60px;right:10px}}
-@media(max-height:690px){.welcome{padding:8px 15px}.core-wrap{height:90px;width:90px;margin-bottom:10px}.core{height:57px;width:57px}.cards{margin-top:15px}.card{padding:9px}h1{margin:12px 0;font-size:clamp(29px,4vw,43px)}.sub{line-height:1.5}}
-@media(max-width:390px){.cards{grid-template-columns:1fr}.card{padding:10px}.eyebrow{font-size:8px;letter-spacing:1px}.topbar{padding:0 9px}.crumb{font-size:10px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
-</style>
-</head>
-<body>
-<canvas id="starfield"></canvas>
-<div class="space-wash" id="spaceWash"></div>
-<div class="grid-floor" id="gridFloor"></div>
-<div class="vignette"></div>
-<div class="app">
-<aside class="sidebar glass">
-<div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6"><path d="M12 2 14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/><circle cx="12" cy="12" r="3"/></svg></div><div><div class="brandname">nova<span style="color:var(--cyan)">.</span></div><div class="brandtag">Cosmic Intelligence</div></div></div>
-<button class="btn-new" id="newChat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg> New conversation <span class="keyhint">⌘ K</span></button>
-<div class="section-label">Workspace</div>
-<button class="nav active" id="chatNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg> Neural chat</button>
-<button class="nav" id="imageNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg> Image generator <span class="beta">AI</span></button>
-<button class="nav" id="settingsNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2Z" transform="translate(-1 -1)"/></svg> Preferences</button>
-<div class="section-label">Recent transmissions</div><div class="history" id="history"></div>
-<div class="sidefoot"><div class="status"><span class="statusdot"></span> Systems operational</div><div class="status" style="color:#66769d;font-size:10px">NOVA CORE <span style="margin-left:auto;color:#91a2d3">v2.6.0</span></div></div>
-</aside>
-<section class="workspace glass">
-<header class="topbar"><div class="crumb"><span class="tiny-gem">✦</span><strong>Nova</strong><span>/</span><span id="modeLabel">Neural workspace</span></div><div class="top-actions"><div class="online"><span class="statusdot"></span> CORE ONLINE</div><button class="iconbtn" id="motionBtn" title="Pause or resume animations" aria-label="Pause or resume animations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5v14M16 5v14"/></svg></button><button class="iconbtn" id="settingsBtn" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a8 8 0 0 0 0-6l1.4-1.1-1.5-2.6-1.7.7a8 8 0 0 0-2-.9L15.3 3h-3l-.3 2.1a8 8 0 0 0-2 .9l-1.7-.7-1.5 2.6L8.2 9a8 8 0 0 0 0 6l-1.4 1.1 1.5 2.6 1.7-.7a8 8 0 0 0 2 .9l.3 2.1h3l.3-2.1a8 8 0 0 0 2-.9l1.7.7 1.5-2.6L19.4 15Z"/></svg></button></div></header>
-<div class="settings glass" id="settingsPanel"><h3>Hologram controls</h3><label class="setting">Cosmic environment <select id="backgroundMode"><option value="cosmic">Cosmic grid</option><option value="stars">Starfield</option><option value="aurora">Aurora nebula</option><option value="off">Minimal</option></select></label><label class="setting">Animation speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="1.7">Hyperdrive</option></select></label><label class="setting">Hologram color <select id="color"><option value="violet">Violet / cyan</option><option value="blue">Ice blue</option><option value="pink">Cyber pink</option><option value="mint">Neon mint</option></select></label><label class="setting">Reduce motion <input type="checkbox" id="reduce"></label></div>
-<main class="main"><section class="welcome" id="welcome"><div class="core-wrap"><div class="core-ring r3"></div><div class="core-ring"></div><div class="core-ring r2"></div><div class="core"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 14.7 9.3 21.5 12l-6.8 2.7L12 21.5l-2.7-6.8L2.5 12l6.8-2.7L12 2.5Z"/><circle cx="12" cy="12" r="2.4"/></svg></div></div><div class="eyebrow"><i></i> Artificial intelligence · online</div><h1>Beyond the <span class="gradient">ordinary.</span></h1><p class="sub">A new dimension of intelligence. Ask anything, create something extraordinary, and explore the universe of ideas — all through one cosmic interface.</p>
-<div class="cards"><button class="card" data-prompt="Explain a complicated topic in a simple, interesting way."><span class="cardicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4M12 17.5h.01"/></svg></span><span><div class="cardtitle">Understand anything</div><div class="carddesc">Break big ideas into clear answers.</div></span></button>
-<button class="card" data-prompt="Help me brainstorm a creative project with some original ideas."><span class="cardicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6m-5 4h4M8 14a7 7 0 1 1 8 0c-.8.6-1 1.3-1 2H9c0-.7-.2-1.4-1-2Z"/></svg></span><span><div class="cardtitle">Create something</div><div class="carddesc">Turn a spark into a real concept.</div></span></button>
-<button class="card" data-prompt="Help me write or improve some code. Explain what each part does."><span class="cardicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m8 8-4 4 4 4m8-8 4 4-4 4m-3-11-2 14"/></svg></span><span><div class="cardtitle">Build with code</div><div class="carddesc">Debug, design, and bring ideas to life.</div></span></button>
-<button class="card" data-prompt="Give me an imaginative prompt for a beautiful sci-fi image."><span class="cardicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 2 1.7 7.1L21 12l-7.3 2.9L12 22l-1.7-7.1L3 12l7.3-2.9L12 2Z"/></svg></span><span><div class="cardtitle">Explore Nova</div><div class="carddesc">Discover what your AI can do.</div></span></button>
-</div></section><div class="messages" id="messages" hidden></div></main>
-<div class="composer-wrap"><div class="composer"><textarea id="prompt" rows="1" placeholder="Transmit a message to Nova..." aria-label="Message Nova"></textarea><div class="composer-bottom"><div class="tools"><button class="tool" id="imageMode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Create image</span></button><button class="tool" id="clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6"/></svg><span>Clear chat</span></button></div><button class="send" id="send" title="Send" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="m4 12 16-8-5 16-3-6-8-2Z"/><path d="m12 14 8-10"/></svg></button></div></div><div class="foot">Nova can make mistakes. Verify important information. <span style="color:var(--cyan)">✦</span> Cosmic interface · Built for humans.</div></div>
-</section></div><div class="toast" id="toast"></div>
-<script>
-(()=>{'use strict';
-const WORKER_URL='https://nova-brain.elijahmfiji.workers.dev';
-const $=id=>document.getElementById(id),canvas=$('starfield'),ctx=canvas.getContext('2d');
-let W=0,H=0,stars=[],paused=false,speed=1,environment='cosmic',reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches,imageMode=false,busy=false,conversation=[],titles=[];
-const messagesEl=$('messages'),welcome=$('welcome'),input=$('prompt'),sendBtn=$('send');
-function resize(){const dpr=Math.min(devicePixelRatio||1,1.7);canvas.width=Math.floor(innerWidth*dpr);canvas.height=Math.floor(innerHeight*dpr);canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(dpr,0,0,dpr,0,0);W=innerWidth;H=innerHeight;stars=Array.from({length:Math.min(155,Math.floor(W*H/7800))},()=>({x:Math.random()*W,y:Math.random()*H,z:Math.random()*.9+.1,r:Math.random()*1.3+.25,p:Math.random()*6.28,v:(Math.random()*.23+.04)}))}
-function draw(){ctx.clearRect(0,0,W,H);if(!paused&&!reduceMotion&&(environment==='cosmic'||environment==='stars')){const t=performance.now()*.001*speed;for(let i=0;i<stars.length;i++){const s=stars[i];s.y-=s.v*speed;s.x+=Math.sin(t*.35+s.p)*.11*speed;if(s.y< -4){s.y=H+4;s.x=Math.random()*W}if(s.x<0)s.x=W;if(s.x>W)s.x=0;const a=.25+.55*(.5+.5*Math.sin(t+s.p));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(${i%4===0?'91,235,255':'179,184,255'},${a})`;ctx.fill();if(i%3===0){ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+Math.sin(t+s.p)*9,s.y+5);ctx.strokeStyle=`rgba(112,207,255,${a*.25})`;ctx.stroke()}}
-if(environment==='cosmic'){const cx=W*.5,cy=H*.42;const r=Math.min(W,H)*.18;ctx.save();ctx.translate(cx,cy);ctx.rotate(t*.035);for(let k=0;k<3;k++){ctx.beginPath();ctx.ellipse(0,0,r*(1+k*.15),r*(.18+k*.035),k*.9,0,Math.PI*2);ctx.strokeStyle=`rgba(${k===1?'72,230,255':'149,131,255'},${.09+k*.025})`;ctx.lineWidth=1;ctx.stroke()}ctx.restore()}}
-requestAnimationFrame(draw)}
-function setEnvironment(v){environment=v;$('spaceWash').style.display=(v==='cosmic'||v==='aurora')&&!reduceMotion?'block':'none';$('gridFloor').style.display=(v==='cosmic'||v==='stars')&&!reduceMotion?'block':'none';if(v==='off'||v==='aurora')ctx.clearRect(0,0,W,H)}
-function toast(s){const el=$('toast');el.textContent=s;el.classList.add('show');clearTimeout(el._timer);el._timer=setTimeout(()=>el.classList.remove('show'),2400)}
-function showMessages(){welcome.hidden=true;messagesEl.hidden=false}
-function addMessage(role,text,img){showMessages();const row=document.createElement('div');row.className='message '+(role==='user'?'user':'assistant');const av=document.createElement('div');av.className='avatar';av.textContent=role==='user'?'YOU':'✦';const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text||'';if(img){const image=document.createElement('img');image.src=img;image.alt='Generated by Nova';bubble.appendChild(image);const a=document.createElement('a');a.href=img;a.download='nova-generated-image.jpg';a.textContent='Download image';a.style.display='inline-block';a.style.marginTop='10px';bubble.appendChild(a)}row.append(av,bubble);messagesEl.appendChild(row);messagesEl.scrollTop=messagesEl.scrollHeight;return row}
-function addTitle(s){if(!s)return;titles.unshift(s.slice(0,48));titles=titles.slice(0,7);const h=$('history');h.replaceChildren();titles.forEach(title=>{const b=document.createElement('button');b.textContent=title;b.title=title;b.onclick=()=>toast('Start a new conversation to begin a fresh chat.');h.appendChild(b)})}
-function typing(){const row=addMessage('assistant','');row.querySelector('.bubble').innerHTML='<div class="typing"><i></i><i></i><i></i></div><span style="font-size:10px;color:#8b9bc1">Nova is processing</span>';return row}
-function setBusy(v){busy=v;sendBtn.disabled=v}
-async function transmit(){const text=input.value.trim();if(!text||busy)return;input.value='';input.style.height='auto';addMessage('user',text);if(!conversation.length)addTitle(text);conversation.push({role:'user',content:text});setBusy(true);const pending=typing();
-try{if(imageMode){pending.querySelector('.bubble').textContent='Rendering your image…';const res=await fetch(WORKER_URL+'/image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:text})});let data;try{data=await res.json()}catch{throw Error('The image service returned an unreadable response.')}if(!res.ok)throw Error(data.error||data.message||'Image request failed ('+res.status+')');if(!data.image)throw Error(data.error||'The server returned no image.');pending.remove();addMessage('assistant','Image generated successfully.',data.image);imageMode=false;$('imageMode').classList.remove('selected');$('modeLabel').textContent='Neural workspace';return}
-const res=await fetch(WORKER_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:conversation})});let data;try{data=await res.json()}catch{throw Error('Nova received an unreadable server response.')}if(!res.ok)throw Error(data.error||data.message||'Chat request failed ('+res.status+')');if(!data.reply)throw Error(data.error||'The server returned no reply.');pending.remove();addMessage('assistant',data.reply);conversation.push({role:'assistant',content:data.reply})
-}catch(e){pending.remove();addMessage('assistant','I couldn’t complete that request.\n\n'+(e.message||'Unknown error')+'\n\nCheck your nova-brain Worker deployment and try again.')}finally{setBusy(false);input.focus()}}
-$('send').addEventListener('click',transmit);input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();transmit()}});input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,170)+'px'});
-document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{input.value=b.dataset.prompt;input.dispatchEvent(new Event('input'));input.focus()}));
-$('imageMode').addEventListener('click',()=>{imageMode=!imageMode;$('imageMode').classList.toggle('selected',imageMode);$('modeLabel').textContent=imageMode?'Image generator':'Neural workspace';input.placeholder=imageMode?'Describe the image you want to create…':'Transmit a message to Nova…';if(imageMode)toast('Image generator activated.');else toast('Chat mode activated.')});
-$('imageNav').addEventListener('click',()=>{$('imageMode').click();input.focus()});
-function newChat(){conversation=[];messagesEl.replaceChildren();messagesEl.hidden=true;welcome.hidden=false;imageMode=false;$('imageMode').classList.remove('selected');$('modeLabel').textContent='Neural workspace';input.placeholder='Transmit a message to Nova…';toast('New conversation ready.')}
-$('newChat').addEventListener('click',newChat);$('clear').addEventListener('click',newChat);
-function toggleSettings(){$('settingsPanel').classList.toggle('open')}
-$('settingsBtn').addEventListener('click',toggleSettings);$('settingsNav').addEventListener('click',toggleSettings);
-$('backgroundMode').addEventListener('change',e=>{setEnvironment(e.target.value);toast('Environment updated.')});$('speed').addEventListener('change',e=>speed=Number(e.target.value));
-$('reduce').addEventListener('change',e=>{reduceMotion=e.target.checked;setEnvironment(environment);document.querySelectorAll('.core,.core-ring,.space-wash,.grid-floor,.gradient,.logo:before').forEach(el=>el.style.animationPlayState=reduceMotion?'paused':'running');toast(reduceMotion?'Motion reduced.':'Full animation restored.')});
-$('motionBtn').addEventListener('click',()=>{paused=!paused;document.querySelectorAll('.core,.core-ring,.space-wash,.grid-floor,.gradient,.logo:before').forEach(el=>el.style.animationPlayState=paused?'paused':reduceMotion?'paused':'running');toast(paused?'Hologram paused.':'Hologram resumed.')});
-$('color').addEventListener('change',e=>{const map={violet:['#a18bff','#57efff','#e58bff'],blue:['#72b8ff','#63edff','#a3c7ff'],pink:['#ff8fdf','#82d8ff','#f4a5ff'],mint:['#65f5c7','#64dfff','#b2ffe9']},c=map[e.target.value];document.documentElement.style.setProperty('--violet',c[0]);document.documentElement.style.setProperty('--cyan',c[1]);document.documentElement.style.setProperty('--pink',c[2]);toast('Hologram hue changed.')});
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();newChat()}if(e.key==='Escape')$('settingsPanel').classList.remove('open')});
-resize();setEnvironment('cosmic');draw();
-})();
-</script>
-</body>
-</html>
-Copy and paste these code parts into GitHub’s `index.html` **in order**. Start with Part 1, then add Part 2 and Part 3 directly after it. Don't include the ``` marks.
 
-### Part 1 of 3
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const CHAT_MODEL = "openai/gpt-oss-120b";
+const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#050612">
-<title>Nova — Holographic AI</title>
-<style>
-:root{color-scheme:dark;--bg:#050612;--panel:rgba(13,17,39,.64);--panel2:rgba(17,24,53,.72);--line:rgba(126,161,255,.2);--text:#f4f7ff;--muted:#9ca9cf;--violet:#a18bff;--cyan:#57efff;--pink:#e58bff;--glow:rgba(103,117,255,.32)}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--bg);overflow:hidden}
-button,textarea,select{font:inherit}
-button{color:inherit;cursor:pointer}
-#starfield{position:fixed;inset:0;width:100%;height:100%;z-index:-5}
-.space-wash{position:fixed;inset:-45%;z-index:-4;pointer-events:none;opacity:.68;filter:blur(65px);background:conic-gradient(from 0deg at 50% 50%,transparent 0 12%,#4335ad55 17%,transparent 27%,#04b8d255 39%,transparent 49%,#8d35c955 60%,transparent 73%,#2c66d855 86%,transparent 100%);animation:cosmic 28s linear infinite}
-.space-wash:before,.space-wash:after{content:"";position:absolute;border-radius:50%;inset:18%;background:radial-gradient(ellipse,transparent 10%,#050612 70%);border:1px solid #6f84ff16;transform:rotateX(65deg) rotate(-20deg)}
-.space-wash:after{inset:26%;transform:rotateX(65deg) rotate(35deg);border-color:#48dfff12}
-@keyframes cosmic{to{transform:rotate(360deg) scale(1.08)}}
-.grid-floor{position:fixed;inset:42% -30% -70%;z-index:-3;pointer-events:none;opacity:.13;background-image:linear-gradient(#7388ff45 1px,transparent 1px),linear-gradient(90deg,#7388ff45 1px,transparent 1px);background-size:58px 58px;transform:perspective(350px) rotateX(60deg);mask-image:linear-gradient(transparent,#000 20%,#000 75%,transparent);animation:gridflow 18s linear infinite}
-@keyframes gridflow{to{background-position:0 58px,58px 0}}
-.vignette{position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse at center,transparent 30%,#05061299 100%)}
-.glass{background:linear-gradient(135deg,rgba(22,28,62,.68),rgba(9,13,30,.72));border:1px solid var(--line);box-shadow:inset 0 1px #ffffff0c,0 15px 60px #0005,0 0 30px #6678ff0a;backdrop-filter:blur(24px) saturate(135%);-webkit-backdrop-filter:blur(24px) saturate(135%)}
-.app{height:100%;max-width:1900px;margin:auto;padding:13px;display:grid;grid-template-columns:250px minmax(0,1fr);gap:13px}
-.sidebar{min-height:0;border-radius:23px;display:flex;flex-direction:column;padding:18px 13px;overflow:hidden;position:relative}
-.sidebar:after,.workspace:after{content:"";position:absolute;pointer-events:none;inset:0;border-radius:inherit;background:linear-gradient(125deg,#8e9bff0a,transparent 25%,transparent 70%,#48eaff08);opacity:.8}
-.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 23px}
-.logo{height:41px;width:41px;border-radius:13px;position:relative;display:grid;place-items:center;background:linear-gradient(145deg,#b3a3ff,#6358ed 55%,#2ad7f0);box-shadow:0 0 24px #7e6eff66,0 0 50px #48dcff22;overflow:hidden}
-.logo:before{content:"";position:absolute;inset:-70%;background:linear-gradient(90deg,transparent,#ffffff8c,transparent);transform:rotate(35deg);animation:scan 4s ease-in-out infinite}
-.logo svg{width:23px;z-index:1}
-.brandname{font-size:19px;font-weight:800;letter-spacing:-.7px}
-.brandtag{font-size:9px;letter-spacing:2px;color:#8d9bc5;text-transform:uppercase;margin-top:3px}
-.btn-new{position:relative;z-index:1;display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #8b8cff55;border-radius:13px;background:linear-gradient(100deg,#8370ff26,#39dff515);font-size:12px;font-weight:650;transition:.25s}
-.btn-new:hover{box-shadow:0 0 25px #7b70ff35;transform:translateY(-2px);border-color:#a9a0ff}
-.keyhint{margin-left:auto;color:#7e8bb3;font-size:10px}
-.section-label{padding:24px 10px 9px;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#7280a8}
-.nav{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:11px;color:#aab7da;font-size:12px;border:1px solid transparent;transition:.2s}
-.nav svg{width:16px;height:16px}
-.nav.active,.nav:hover{color:#fff;background:#8c84ff15;border-color:#9d9cff22}
-.nav.active{box-shadow:inset 2px 0 #9c91ff}
-.beta{margin-left:auto;font-size:8px;letter-spacing:1px;color:#81eaff}
-.history{position:relative;z-index:1;overflow:auto;flex:1;min-height:30px}
-.history button{display:block;width:100%;padding:9px 10px;border:0;background:transparent;border-radius:9px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:#a0accd}
-.history button:hover{background:#ffffff0b;color:white}
-.sidefoot{border-top:1px solid var(--line);padding-top:12px;position:relative;z-index:1}
-.status{display:flex;align-items:center;gap:8px;padding:9px 10px;color:#a5b5d8;font-size:11px}
-.statusdot{height:6px;width:6px;border-radius:50%;background:#57f3c0;box-shadow:0 0 12px #57f3c0;animation:blink 2s infinite}
-.workspace{position:relative;min-width:0;min-height:0;border-radius:23px;overflow:hidden;display:flex;flex-direction:column}
-.topbar{height:61px;display:flex;align-items:center;justify-content:space-between;padding:0 21px;border-bottom:1px solid var(--line);background:#070a1b38;flex-shrink:0;position:relative;z-index:2}
-.crumb{display:flex;align-items:center;gap:9px;font-size:11px;color:#8290b8}
-.crumb strong{color:#eef1ff;font-weight:650}
-.tiny-gem{color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
-.top-actions{display:flex;align-items:center;gap:8px}
-.online{display:flex;align-items:center;gap:7px;border:1px solid #68f4cb26;border-radius:100px;padding:7px 10px;color:#a5f5d9;font-size:10px;background:#5af4c808}
-.online .statusdot{height:5px;width:5px}
-.iconbtn{height:34px;width:34px;display:grid;place-items:center;background:#ffffff06;border:1px solid var(--line);border-radius:11px;color:#b8c4e8;transition:.2s}
-.iconbtn:hover{color:white;border-color:#a6a2ff66;background:#a69bff15}
-.iconbtn svg{width:16px;height:16px}
-.main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;z-index:1}
-.welcome{margin:auto;width:min(780px,100%);padding:25px 23px;text-align:center;animation:appear .8s cubic-bezier(.2,.8,.2,1) both}
-.core-wrap{height:146px;width:146px;margin:0 auto 20px;display:grid;place-items:center;position:relative;perspective:500px}
-.core-ring{position:absolute;border:1px solid #8c9aff42;border-radius:50%;inset:3px;transform:rotateX(68deg) rotateZ(0);box-shadow:0 0 20px #737cff15;animation:spin 12s linear infinite}
-.core-ring.r2{inset:14px;border-color:#5beaff45;transform:rotateX(68deg) rotateZ(55deg);animation-duration:8s;animation-direction:reverse}
-.core-ring.r3{inset:0;border-style:dashed;border-color:#bd94ff2d;transform:rotateX(72deg) rotateZ(25deg);animation-duration:24s}
-.core-ring:after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 15px var(--cyan);left:18%;top:20%}
-.core-ring.r2:after{background:var(--pink);box-shadow:0 0 15px var(--pink);left:75%;top:76%}
-.core{height:76px;width:76px;border-radius:26px;display:grid;place-items:center;position:relative;transform:rotate(-8deg);background:linear-gradient(145deg,#b3a2ffdc,#6555f0dd 52%,#37dff0dc);border:1px solid #ffffff7a;box-shadow:0 0 28px #8a78ff8c,0 0 70px #51dffb27,inset 0 0 20px #ffffff36;animation:corefloat 5s ease-in-out infinite;isolation:isolate}
-.core:before{content:"";position:absolute;inset:-12px;border-radius:31px;border:1px solid #a99aff3a;box-shadow:0 0 18px #7f6cff22;animation:breath 3s ease-in-out infinite}
-.core:after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 25%,#ffffff64 48%,transparent 68%);transform:translateX(-120%);animation:corescan 4.5s ease-in-out infinite}
-.core svg{width:36px;height:36px;filter:drop-shadow(0 0 7px #ffffffad)}
-@keyframes spin{to{transform:rotateX(68deg) rotateZ(360deg)}}
-@keyframes corefloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-8px) rotate(3deg)}}
-@keyframes breath{50%{transform:scale(1.13);opacity:.45}}
-@keyframes corescan{0%,55%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
-@keyframes scan{0%,65%{transform:translateX(-160%) rotate(35deg)}100%{transform:translateX(160%) rotate(35deg)}}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid #8f91ff35;background:#8d80ff0c;border-radius:99px;padding:7px 11px;font-size:9px;text-transform:uppercase;letter-spacing:1.8px;color:#c2c4ff;box-shadow:0 0 24px #8b80ff09}
-.eyebrow i{height:5px;width:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
-h1{font-size:clamp(33px,4.4vw,57px);line-height:1.03;letter-spacing:-2.6px;margin:18px 0 14px;font-weight:790}
-.gradient{background:linear-gradient(100deg,#ffffff 5%,#c1b4ff 38%,#70eaff 72%,#e5a0ff 100%);background-size:200% auto;color:transparent;-webkit-background-clip:text;background-clip:text;animation:textflow 8s ease-in-out infinite}
-@keyframes textflow{50%{background-position:100% center}}
-.sub{font-size:13px;color:#9ca9cb;line-height:1.75;max-width:500px;margin:0 auto}
-.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:625px;margin:28px auto 0;text-align:left}
-.card{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:flex-start;gap:11px;padding:14px;border:1px solid #879cff22;border-radius:15px;background:linear-gradient(130deg,#a9a5ff09,#38dcf808);transition:transform .25s,border-color .25s,box-shadow .25s;text-align:left}
-.card:before{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(115deg,transparent 20%,#8f9fff16 48%,transparent 75%);transform:translateX(-130%);transition:transform .7s}
-.card:hover{transform:translateY(-3px);border-color:#8e9cff70;box-shadow:0 8px 28px #566dff13}
-.card:hover:before{transform:translateX(130%)}
-.cardicon{height:33px;width:33px;border:1px solid #a7a0ff2a;border-radius:10px;display:grid;place-items:center;flex-shrink:0;color:#aeb8ff;background:#a49aff0c}
-.cardicon svg{width:17px;height:17px}
-.cardtitle{font-size:11px;font-weight:700;color:#e7eaff;margin-bottom:5px}
-.carddesc{font-size:10px;line-height:1.55;color:#8998bf}
-.messages{flex:1;min-height:0;overflow:auto;padding:28px clamp(15px,5vw,70px);scroll-behavior:smooth}
-.message{display:flex;gap:11px;max-width:850px;margin:0 auto 19px;animation:appear .3s ease both}
-.message.user{flex-direction:row-reverse}
-.avatar{height:29px;width:29px;flex-shrink:0;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;background:#a49aff12;color:var(--cyan);font-size:11px;font-weight:800}
-.message.user .avatar{color:#fff;background:#8e80ff22}
-.bubble{max-width:min(720px,calc(100% - 45px));padding:13px 15px;border:1px solid var(--line);border-radius:5px 15px 15px 15px;background:#10162dc9;color:#e2e8ff;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 6px 25px #0002}
-.message.user .bubble{border-radius:15px 5px 15px 15px;background:linear-gradient(130deg,#6455ad55,#1b7b9b35)}
-.bubble img{display:block;max-width:100%;max-height:460px;border-radius:11px;margin-top:8px}
-.typing{display:flex;gap:5px;padding:7px 0 11px}
-.typing i{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink .9s ease-in-out infinite}
-.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
-@keyframes blink{50%{opacity:.25;transform:scale(.75)}}
-.composer-wrap{padding:10px clamp(12px,4vw,45px) 15px;position:relative;z-index:2;background:linear-gradient(transparent,#070a1bbf 24%)}
-.composer{max-width:900px;margin:auto;border:1px solid #8d9cff38;border-radius:18px;background:linear-gradient(135deg,#151a39dc,#090e21e8);box-shadow:0 0 35px #5c68ff0c,inset 0 1px #ffffff0c;backdrop-filter:blur(25px);transition:border-color .2s,box-shadow .2s}
-.composer:focus-within{border-color:#8c9cff83;box-shadow:0 0 35px #6678ff1c}
-textarea{width:100%;resize:none;outline:none;border:0;background:transparent;color:white;padding:17px 17px 8px;font-size:13px;line-height:1.6;max-height:170px}
-textarea::placeholder{color:#7482aa}
-.composer-bottom{display:flex;align-items:center;justify-content:space-between;padding:5px 9px 9px}
-.tools{display:flex;gap:5px;align-items:center}
-.tool{display:flex;align-items:center;gap:6px;border:1px solid transparent;background:transparent;color:#8999c1;padding:7px 9px;border-radius:9px;font-size:10px;transition:.2s}
-.tool svg{width:14px;height:14px}
-.tool:hover,.tool.selected{border-color:#9c9aff38;background:#8e86ff12;color:#d7d7ff}
-.send{width:36px;height:36px;display:grid;place-items:center;border:1px solid #a8a2ff55;border-radius:12px;background:linear-gradient(140deg,#8b7aff,#5b55d7 60%,#2b9ba9);box-shadow:0 0 20px #7770ff2d;transition:.2s}
-.send:hover{transform:translateY(-2px);box-shadow:0 0 27px #7770ff66}
-.send:disabled{opacity:.45;cursor:wait}
-.send svg{width:17px;height:17px}
-.foot{max-width:900px;margin:9px auto 0;text-align:center;font-size:9px;color:#64749c;letter-spacing:.15px}
-.settings{position:absolute;z-index:5;right:18px;top:70px;width:min(280px,calc(100% - 36px));padding:17px;border-radius:17px;display:none}
-.settings.open{display:block;animation:appear .2s ease both}
-.settings h3{font-size:12px;margin:0 0 14px}
-.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;font-size:11px;color:#b8c4e5}
-.setting select{max-width:145px;border:1px solid var(--line);border-radius:8px;padding:7px;background:#10162b;color:#eaf0ff;font-size:10px}
-.setting input{accent-color:#9b8cff}
-.toast{position:absolute;z-index:10;bottom:115px;left:50%;transform:translate(-50%,10px);padding:10px 15px;border:1px solid var(--line);border-radius:12px;background:#111831eF;backdrop-filter:blur(18px);font-size:11px;color:#e9edff;opacity:0;pointer-events:none;transition:.25s;max-width:calc(100% - 30px);text-align:center}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-[hidden]{display:none!important}
-@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@media(min-width:1300px){.welcome{transform:translateY(-5px)}}
-@media(max-width:760px){.app{padding:7px;grid-template-columns:1fr;gap:7px}.sidebar{display:none}.workspace{border-radius:17px}.topbar{height:52px;padding:0 13px}.welcome{padding:15px 10px}.core-wrap{height:112px;width:112px;margin-bottom:15px}.core{height:65px;width:65px;border-radius:22px}.cards{margin-top:20px;gap:8px}.card{padding:10px;gap:8px}.cardicon{width:29px;height:29px}.cardtitle{font-size:10px}.carddesc{font-size:9px}h1{letter-spacing:-1.5px}.sub{font-size:12px}.composer-wrap{padding:8px 10px 10px}.foot{font-size:8px}.messages{padding:20px 10px}.online{font-size:9px}.settings{top:60px;right:10px}}
-@media(max-height:690px){.welcome{padding:8px 15px}.core-wrap{height:90px;width:90px;margin-bottom:10px}.core{height:57px;width:57px}.cards{margin-top:15px}.card{padding:9px}h1{margin:12px 0;font-size:clamp(29px,4vw,43px)}.sub{line-height:1.5}}
-@media(max-width:390px){.cards{grid-template-columns:1fr}.card{padding:10px}.eyebrow{font-size:8px;letter-spacing:1px}.topbar{padding:0 9px}.crumb{font-size:10px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
-</style>
-</head>
-<body>
-<canvas id="starfield"></canvas>
-<div class="space-wash" id="spaceWash"></div>
-<div class="grid-floor" id="gridFloor"></div>
-<div class="vignette"></div>
-<div class="app">
-<aside class="sidebar glass">
-<div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6"><path d="M12 2 14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/><circle cx="12" cy="12" r="3"/></svg></div><div><div class="brandname">nova<span style="color:var(--cyan)">.</span></div><div class="brandtag">Cosmic Intelligence</div></div></div>
-<button class="btn-new" id="newChat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg> New conversation <span class="keyhint">⌘ K</span></button>
-<div class="section-label">Workspace</div>
-<button class="nav active" id="chatNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg> Neural chat</button>
-<button class="nav" id="imageNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg> Image generator <span class="beta">AI</span></button>
-<button class="nav" id="settingsNav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2Z" transform="translate(-1 -1)"/></svg> Preferences</button>
-<div class="section-label">Recent transmissions</div><div class="history" id="history"></div>
-<div class="sidefoot"><div class="status"><span class="statusdot"></span> Systems operational</div><div class="status" style="color:#66769d;font-size:10px">NOVA CORE <span style="margin-left:auto;color:#91a2d3">v2.6.0</span></div></div>
-</aside>
-<section class="workspace glass">
-<header class="topbar"><div class="crumb"><span class="tiny-gem">✦</span><strong>Nova</strong><span>/</span><span id="modeLabel">Neural workspace</span></div><div class="top-actions"><div class="online"><span class="statusdot"></span> CORE ONLINE</div><button class="iconbtn" id="motionBtn" title="Pause or resume animations" aria-label="Pause or resume animations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5v14M16 5v14"/></svg></button><button class="iconbtn" id="settingsBtn" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a8 8 0 0 0 0-6l1.4-1.1-1.5-2.6-1.7.7a8 8 0 0 0-2-.9L15.3 3h-3l-.3 2.1a8 8 0 0 0-2 .9l-1.7-.7-1.5 2.6L8.2 9a8 8 0 0 0 0 6l-1.4 1.1 1.5 2.6 1.7-.7a8 8 0 0 0 2 .9l.3 2.1h3l.3-2.1a8 8 0 0 0 2-.9l1.7.7 1.5-2.6L19.4 15Z"/></svg></button></div></header>
-<div class="settings glass" id="settingsPanel"><h3>Hologram controls</h3><label class="setting">Cosmic environment <select id="backgroundMode"><option value="cosmic">Cosmic grid</option><option value="stars">Starfield</option><option value="aurora">Aurora nebula</option><option value="off">Minimal</option></select></label><label class="setting">Animation speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="1.7">Hyperdrive</option></select></label><label class="setting">Hologram color <select id="color"><option value="violet">Violet / cyan</option><option value="blue">Ice blue</option><option value="pink">Cyber pink</option><option value="mint">Neon mint</option></select></label><label class="setting">Reduce motion <input type="checkbox" id="reduce"></label></div>
-<main class="main"><section class="welcome" id="welcome"><div class="core-wrap"><div class="core-ring r3"></div><div class="core-ring"></div><div class="core-ring r2"></div><div class="core"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 14.7 9.3 21.5 12l-6.8 2.7L12 21.5l-2.7-6.8L2.5 12l6.8-2.7L12 2.5Z"/><circle cx="12" cy="12" r="2.4"/></svg></div></div><div class="eyebrow"><i></i> Artificial intelligence · online</div><h1>Beyond the <span class="gradient">ordinary.</span></h1><p class="sub">A new dimension of intelligence. Ask anything, create something extraordinary, and explore the universe of ideas — all through one cosmic interface.</p>
-<div class="cards"><button class="card" data-prompt="Explain a complicated topic in a simple, interesting way."><span class="cardicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4M12 17.5h.01"/></svg></span><span><div class="cardtitle">Understand anything</div><div class="carddesc">Break big ideas into clear answers.</div></span></button>
-<button class="card" data-prompt="Help me brainstorm a creative project with some original ideas."><span class="cardicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6m-5 4h4M8 14a7 7 0 1 1 8 0c-.8.6-1 1.3-1 2H9c0-.7-.2-1.4-1-2Z"/></svg></span><span><div class="cardtitle">Create something</div><div class="carddesc">Turn a spark into a real concept.</div></span></button>
-<button class="card" data-prompt="Help me write or improve some code. Explain what each part does."><span class="cardicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m8 8-4 4 4 4m8-8 4 4-4 4m-3-11-2 14"/></svg></span><span><div class="cardtitle">Build with code</div><div class="carddesc">Debug, design, and bring ideas to life.</div></span></button>
-<button class="card" data-prompt="Give me an imaginative prompt for a beautiful sci-fi image."><span class="cardicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 2 1.7 7.1L21 12l-7.3 2.9L12 22l-1.7-7.1L3 12l7.3-2.9L12 2Z"/></svg></span><span><div class="cardtitle">Explore Nova</div><div class="carddesc">Discover what your AI can do.</div></span></button>
-</div></section><div class="messages" id="messages" hidden></div></main>
-<div class="composer-wrap"><div class="composer"><textarea id="prompt" rows="1" placeholder="Transmit a message to Nova..." aria-label="Message Nova"></textarea><div class="composer-bottom"><div class="tools"><button class="tool" id="imageMode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Create image</span></button><button class="tool" id="clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6"/></svg><span>Clear chat</span></button></div><button class="send" id="send" title="Send" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="m4 12 16-8-5 16-3-6-8-2Z"/><path d="m12 14 8-10"/></svg></button></div></div><div class="foot">Nova can make mistakes. Verify important information. <span style="color:var(--cyan)">✦</span> Cosmic interface · Built for humans.</div></div>
-</section></div><div class="toast" id="toast"></div>
-<script>
-(()=>{'use strict';
-const WORKER_URL='https://nova-brain.elijahmfiji.workers.dev';
-const $=id=>document.getElementById(id),canvas=$('starfield'),ctx=canvas.getContext('2d');
-let W=0,H=0,stars=[],paused=false,speed=1,environment='cosmic',reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches,imageMode=false,busy=false,conversation=[],titles=[];
-const messagesEl=$('messages'),welcome=$('welcome'),input=$('prompt'),sendBtn=$('send');
-function resize(){const dpr=Math.min(devicePixelRatio||1,1.7);canvas.width=Math.floor(innerWidth*dpr);canvas.height=Math.floor(innerHeight*dpr);canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(dpr,0,0,dpr,0,0);W=innerWidth;H=innerHeight;stars=Array.from({length:Math.min(155,Math.floor(W*H/7800))},()=>({x:Math.random()*W,y:Math.random()*H,z:Math.random()*.9+.1,r:Math.random()*1.3+.25,p:Math.random()*6.28,v:(Math.random()*.23+.04)}))}
-function draw(){ctx.clearRect(0,0,W,H);if(!paused&&!reduceMotion&&(environment==='cosmic'||environment==='stars')){const t=performance.now()*.001*speed;for(let i=0;i<stars.length;i++){const s=stars[i];s.y-=s.v*speed;s.x+=Math.sin(t*.35+s.p)*.11*speed;if(s.y< -4){s.y=H+4;s.x=Math.random()*W}if(s.x<0)s.x=W;if(s.x>W)s.x=0;const a=.25+.55*(.5+.5*Math.sin(t+s.p));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(${i%4===0?'91,235,255':'179,184,255'},${a})`;ctx.fill();if(i%3===0){ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+Math.sin(t+s.p)*9,s.y+5);ctx.strokeStyle=`rgba(112,207,255,${a*.25})`;ctx.stroke()}}
-if(environment==='cosmic'){const cx=W*.5,cy=H*.42;const r=Math.min(W,H)*.18;ctx.save();ctx.translate(cx,cy);ctx.rotate(t*.035);for(let k=0;k<3;k++){ctx.beginPath();ctx.ellipse(0,0,r*(1+k*.15),r*(.18+k*.035),k*.9,0,Math.PI*2);ctx.strokeStyle=`rgba(${k===1?'72,230,255':'149,131,255'},${.09+k*.025})`;ctx.lineWidth=1;ctx.stroke()}ctx.restore()}}
-requestAnimationFrame(draw)}
-function setEnvironment(v){environment=v;$('spaceWash').style.display=(v==='cosmic'||v==='aurora')&&!reduceMotion?'block':'none';$('gridFloor').style.display=(v==='cosmic'||v==='stars')&&!reduceMotion?'block':'none';if(v==='off'||v==='aurora')ctx.clearRect(0,0,W,H)}
-function toast(s){const el=$('toast');el.textContent=s;el.classList.add('show');clearTimeout(el._timer);el._timer=setTimeout(()=>el.classList.remove('show'),2400)}
-function showMessages(){welcome.hidden=true;messagesEl.hidden=false}
-function addMessage(role,text,img){showMessages();const row=document.createElement('div');row.className='message '+(role==='user'?'user':'assistant');const av=document.createElement('div');av.className='avatar';av.textContent=role==='user'?'YOU':'✦';const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text||'';if(img){const image=document.createElement('img');image.src=img;image.alt='Generated by Nova';bubble.appendChild(image);const a=document.createElement('a');a.href=img;a.download='nova-generated-image.jpg';a.textContent='Download image';a.style.display='inline-block';a.style.marginTop='10px';bubble.appendChild(a)}row.append(av,bubble);messagesEl.appendChild(row);messagesEl.scrollTop=messagesEl.scrollHeight;return row}
-function addTitle(s){if(!s)return;titles.unshift(s.slice(0,48));titles=titles.slice(0,7);const h=$('history');h.replaceChildren();titles.forEach(title=>{const b=document.createElement('button');b.textContent=title;b.title=title;b.onclick=()=>toast('Start a new conversation to begin a fresh chat.');h.appendChild(b)})}
-function typing(){const row=addMessage('assistant','');row.querySelector('.bubble').innerHTML='<div class="typing"><i></i><i></i><i></i></div><span style="font-size:10px;color:#8b9bc1">Nova is processing</span>';return row}
-function setBusy(v){busy=v;sendBtn.disabled=v}
-async function transmit(){const text=input.value.trim();if(!text||busy)return;input.value='';input.style.height='auto';addMessage('user',text);if(!conversation.length)addTitle(text);conversation.push({role:'user',content:text});setBusy(true);const pending=typing();
-try{if(imageMode){pending.querySelector('.bubble').textContent='Rendering your image…';const res=await fetch(WORKER_URL+'/image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:text})});let data;try{data=await res.json()}catch{throw Error('The image service returned an unreadable response.')}if(!res.ok)throw Error(data.error||data.message||'Image request failed ('+res.status+')');if(!data.image)throw Error(data.error||'The server returned no image.');pending.remove();addMessage('assistant','Image generated successfully.',data.image);imageMode=false;$('imageMode').classList.remove('selected');$('modeLabel').textContent='Neural workspace';return}
-const res=await fetch(WORKER_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:conversation})});let data;try{data=await res.json()}catch{throw Error('Nova received an unreadable server response.')}if(!res.ok)throw Error(data.error||data.message||'Chat request failed ('+res.status+')');if(!data.reply)throw Error(data.error||'The server returned no reply.');pending.remove();addMessage('assistant',data.reply);conversation.push({role:'assistant',content:data.reply})
-}catch(e){pending.remove();addMessage('assistant','I couldn’t complete that request.\n\n'+(e.message||'Unknown error')+'\n\nCheck your nova-brain Worker deployment and try again.')}finally{setBusy(false);input.focus()}}
-$('send').addEventListener('click',transmit);input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();transmit()}});input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,170)+'px'});
-document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{input.value=b.dataset.prompt;input.dispatchEvent(new Event('input'));input.focus()}));
-$('imageMode').addEventListener('click',()=>{imageMode=!imageMode;$('imageMode').classList.toggle('selected',imageMode);$('modeLabel').textContent=imageMode?'Image generator':'Neural workspace';input.placeholder=imageMode?'Describe the image you want to create…':'Transmit a message to Nova…';if(imageMode)toast('Image generator activated.');else toast('Chat mode activated.')});
-$('imageNav').addEventListener('click',()=>{$('imageMode').click();input.focus()});
-function newChat(){conversation=[];messagesEl.replaceChildren();messagesEl.hidden=true;welcome.hidden=false;imageMode=false;$('imageMode').classList.remove('selected');$('modeLabel').textContent='Neural workspace';input.placeholder='Transmit a message to Nova…';toast('New conversation ready.')}
-$('newChat').addEventListener('click',newChat);$('clear').addEventListener('click',newChat);
-function toggleSettings(){$('settingsPanel').classList.toggle('open')}
-$('settingsBtn').addEventListener('click',toggleSettings);$('settingsNav').addEventListener('click',toggleSettings);
-$('backgroundMode').addEventListener('change',e=>{setEnvironment(e.target.value);toast('Environment updated.')});$('speed').addEventListener('change',e=>speed=Number(e.target.value));
-$('reduce').addEventListener('change',e=>{reduceMotion=e.target.checked;setEnvironment(environment);document.querySelectorAll('.core,.core-ring,.space-wash,.grid-floor,.gradient,.logo:before').forEach(el=>el.style.animationPlayState=reduceMotion?'paused':'running');toast(reduceMotion?'Motion reduced.':'Full animation restored.')});
-$('motionBtn').addEventListener('click',()=>{paused=!paused;document.querySelectorAll('.core,.core-ring,.space-wash,.grid-floor,.gradient,.logo:before').forEach(el=>el.style.animationPlayState=paused?'paused':reduceMotion?'paused':'running');toast(paused?'Hologram paused.':'Hologram resumed.')});
-$('color').addEventListener('change',e=>{const map={violet:['#a18bff','#57efff','#e58bff'],blue:['#72b8ff','#63edff','#a3c7ff'],pink:['#ff8fdf','#82d8ff','#f4a5ff'],mint:['#65f5c7','#64dfff','#b2ffe9']},c=map[e.target.value];document.documentElement.style.setProperty('--violet',c[0]);document.documentElement.style.setProperty('--cyan',c[1]);document.documentElement.style.setProperty('--pink',c[2]);toast('Hologram hue changed.')});
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();newChat()}if(e.key==='Escape')$('settingsPanel').classList.remove('open')});
-resize();setEnvironment('cosmic');draw();
-})();
-</script>
-</body>
-</html>
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      ...CORS_HEADERS,
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    if (request.method === "GET" && url.pathname === "/") {
+      return json({
+        name: "Nova Brain",
+        status: "online",
+        routes: ["/chat", "/image"],
+      });
+    }
+
+    if (request.method !== "POST") {
+      return json({ error: "Use POST for this endpoint." }, 405);
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: "Invalid JSON request body." }, 400);
+    }
+
+    // ---------------- CHAT ----------------
+    if (url.pathname === "/chat") {
+      if (!env.GROQ_API_KEY) {
+        return json({
+          error: "Missing GROQ_API_KEY secret in Cloudflare Worker settings.",
+        }, 500);
+      }
+
+      const messages = body.messages;
+
+      if (!Array.isArray(messages) || messages.length === 0) {
+        return json({ error: "Send a messages array." }, 400);
+      }
+
+      // Only allow valid roles and text content from the conversation.
+      const safeMessages = messages
+        .filter(m =>
+          m &&
+          ["user", "assistant"].includes(m.role) &&
+          typeof m.content === "string"
+        )
+        .slice(-20)
+        .map(m => ({
+          role: m.role,
+          content: m.content.slice(0, 12000),
+        }));
+
+      if (!safeMessages.length || safeMessages[safeMessages.length - 1].role !== "user") {
+        return json({ error: "The last message must be a user message." }, 400);
+      }
+
+      try {
+        const response = await fetch(GROQ_URL, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: CHAT_MODEL,
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are Nova, a helpful, friendly personal AI assistant. " +
+                  "Be clear, practical, and creative. Explain things simply when appropriate. " +
+                  "Never claim to have performed an action you did not perform."
+              },
+              ...safeMessages,
+            ],
+            temperature: 0.7,
+            max_completion_tokens: 1800,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          console.error("Groq API error:", response.status, result);
+          return json({
+            error: result?.error?.message ||
+              `Chat provider returned HTTP ${response.status}. Check your Groq model and API key.`,
+          }, 502);
+        }
+
+        const reply = result?.choices?.[0]?.message?.content;
+
+        if (typeof reply !== "string" || !reply.trim()) {
+          console.error("Unexpected Groq response:", result);
+          return json({ error: "The AI provider returned an empty reply." }, 502);
+        }
+
+        return json({ reply: reply.trim() });
+      } catch (error) {
+        console.error("Chat request failed:", errorMessage(error));
+        return json({ error: "Chat request failed. Check the Worker logs." }, 502);
+      }
+    }
+
+    // ---------------- IMAGE GENERATION ----------------
+    if (url.pathname === "/image") {
+      // The Cloudflare dashboard must have an AI binding named AI.
+      if (!env.AI || typeof env.AI.run !== "function") {
+        return json({
+          error: "Cloudflare AI binding is missing. Add a Workers AI binding named AI.",
+        }, 500);
+      }
+
+      const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+
+      if (!prompt) {
+        return json({ error: "Enter a description for the image." }, 400);
+      }
+
+      if (prompt.length > 1500) {
+        return json({ error: "Please keep the image prompt under 1500 characters." }, 400);
+      }
+
+      try {
+        const result = await env.AI.run(IMAGE_MODEL, {
+          prompt: prompt,
+          num_steps: 4,
+        });
+
+        // FLUX.1-schnell normally returns { image: "base64..." }.
+        // Handle a few possible response formats without exposing secrets.
+        let image = result?.image;
+
+        if (!image && result instanceof ArrayBuffer) {
+          image = arrayBufferToBase64(result);
+        }
+
+        if (!image && result instanceof Uint8Array) {
+          image = arrayBufferToBase64(
+            result.buffer.slice(
+              result.byteOffset,
+              result.byteOffset + result.byteLength
+            )
+          );
+        }
+
+        if (!image && result?.data instanceof Uint8Array) {
+          image = arrayBufferToBase64(
+            result.data.buffer.slice(
+              result.data.byteOffset,
+              result.data.byteOffset + result.data.byteLength
+            )
+          );
+        }
+
+        if (typeof image !== "string" || !image.length) {
+          console.error(
+            "Unexpected Workers AI image response format:",
+            result ? Object.keys(result) : result
+          );
+          return json({
+            error: "The image model returned no image. Check Workers AI availability and Worker logs.",
+          }, 502);
+        }
+
+        // The frontend accepts a data URL, so return one consistently.
+        const dataUrl = image.startsWith("data:image/")
+          ? image
+          : `data:image/png;base64,${image}`;
+
+        return json({ image: dataUrl });
+      } catch (error) {
+        console.error("Image generation failed:", errorMessage(error));
+
+        return json({
+          error:
+            "Image generation failed. Check Cloudflare Workers AI access, " +
+            "model availability, usage limits, and the Worker logs.",
+        }, 502);
+      }
+    }
+
+    return json({
+      error: "Unknown endpoint. Use /chat or /image.",
+    }, 404);
+  },
+};
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  const chunkSize = 0x8000;
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+
+  return btoa(binary);
+}

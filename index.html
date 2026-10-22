@@ -3,1079 +3,786 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nova AI</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova</title>
 <style>
 :root {
-  --bg: #030913;
-  --cyan: #43eaff;
-  --orange: #ff9b43;
-  --text: #d8faff;
-  --line: #43eaff55;
-  --panel: rgba(5,22,39,.85);
+  --sidebar: #171717;
+  --main: #212121;
+  --panel: #303030;
+  --hover: #2b2b2b;
+  --text: #f3f3f3;
+  --muted: #a0a0a0;
+  --border: #383838;
+  --accent: #10a37f;
 }
-
 * { box-sizing: border-box; }
-
 body {
   margin: 0;
-  min-height: 100vh;
+  background: var(--main);
   color: var(--text);
-  font: 14px/1.5 "Segoe UI", system-ui, sans-serif;
-  background: radial-gradient(ellipse at top, #0a2c45, var(--bg) 75%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  height: 100dvh;
+  overflow: hidden;
 }
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(#43eaff12 1px, transparent 1px),
-    linear-gradient(90deg, #43eaff12 1px, transparent 1px);
-  background-size: 36px 36px;
-}
-
-button, input, textarea, select { font: inherit; }
+button, textarea { font: inherit; }
 button { cursor: pointer; color: inherit; }
+.app { display: flex; height: 100dvh; }
 
-.app {
-  display: grid;
-  grid-template-columns: 230px minmax(0,1fr);
-  gap: 12px;
-  padding: 12px;
-  min-height: 100vh;
-}
-
-.sidebar, .topbar, .hud, .chat, .modalinner {
-  border: 1px solid var(--line);
-  background: var(--panel);
-  backdrop-filter: blur(15px);
-  box-shadow: 0 0 22px #43eaff12;
-}
-
+/* SIDEBAR */
 .sidebar {
-  padding: 15px;
-  border-radius: 14px;
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--sidebar);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  padding: 12px;
+  transition: width .2s, transform .2s;
+  overflow: hidden;
 }
-
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 4px 22px;
+}
 .brand {
   display: flex;
-  align-items: center;
   gap: 10px;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -.7px;
 }
-
 .logo {
-  width: 43px;
-  height: 43px;
-  border: 1px solid var(--cyan);
-  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--accent);
   display: grid;
   place-items: center;
-  color: var(--cyan);
-  font-size: 22px;
-  box-shadow: 0 0 18px #43eaff55;
+  color: white;
+  font-size: 19px;
+  font-weight: 800;
 }
-
-.brandname { font-size: 21px; letter-spacing: 4px; }
-
-.small, .sub, .section {
-  color: #78a9bb;
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  font-size: 19px;
 }
-
-.status { color: var(--cyan); font-size: 10px; }
-
-.led {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  background: #5dffb2;
-  border-radius: 50%;
-  box-shadow: 0 0 9px #5dffb2;
-  margin-right: 6px;
-}
-
-.btn {
-  border: 1px solid var(--line);
-  background: #09263bbd;
-  border-radius: 8px;
-  padding: 10px 12px;
+.icon-btn:hover, .side-btn:hover { background: var(--hover); color: var(--text); }
+.side-btn {
+  width: 100%;
+  padding: 11px 12px;
+  border: 0;
+  background: transparent;
   text-align: left;
-  color: var(--text);
-}
-
-.btn:hover, .btn.active {
-  border-color: var(--cyan);
-  box-shadow: 0 0 13px #43eaff30;
-}
-
-.primary, .send {
-  background: linear-gradient(110deg,#087da6,#144e98);
-  border-color: var(--cyan);
-}
-
-.primary { text-align: center; }
-
-.history {
-  display: grid;
-  gap: 6px;
-  max-height: 35vh;
-  overflow: auto;
-}
-
-.history button {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 12px;
-}
-
-.bottom {
-  margin-top: auto;
-  display: grid;
-  gap: 8px;
-}
-
-.main {
+  border-radius: 9px;
   display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 12px;
+  gap: 11px;
+  align-items: center;
+  font-size: 14px;
+  white-space: nowrap;
 }
-
-.topbar {
-  border-radius: 10px;
-  padding: 12px 15px;
+.side-btn .symbol { width: 20px; font-size: 18px; text-align: center; }
+.section-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 24px 10px 9px;
+}
+.history { flex: 1; overflow-y: auto; min-height: 0; }
+.history-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-}
-
-.topbar-title {
-  font-size: 11px;
-  letter-spacing: 1.7px;
-}
-
-.actions { display: flex; gap: 7px; align-items: center; }
-
-.chip {
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 5px 10px;
-  color: var(--cyan);
-  font-size: 10px;
-}
-
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) 230px;
-  gap: 12px;
-  flex: 1;
-}
-
-.work {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-/* No giant hologram section. The interface itself has the holographic style. */
-
-.chat {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 85px);
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-  background:
-    linear-gradient(135deg,#03182ae8,#06273bd9 50%,#041321ee);
-}
-
-.chat::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg, transparent 0 5px, #43eaff07 6px 7px
-  );
-}
-
-.panelhead {
-  position: relative;
-  padding: 13px 15px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--cyan);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-}
-
-.messages {
-  position: relative;
-  flex: 1;
-  min-height: 300px;
-  padding: 16px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.msg {
-  max-width: 92%;
-  align-self: flex-start;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 3px 12px 12px 12px;
-  background: #041e32e8;
-  overflow-wrap: anywhere;
-  box-shadow: 0 0 12px #43eaff09;
-}
-
-.msg.user {
-  align-self: flex-end;
-  border-color: #ff9b4380;
-  border-radius: 12px 3px 12px 12px;
-  background: #39241188;
-}
-
-.who {
-  color: var(--cyan);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  margin-bottom: 5px;
-}
-
-.msg.user .who { color: var(--orange); }
-
-.msg img {
-  display: block;
-  max-width: 100%;
-  max-height: 500px;
-  object-fit: contain;
+  gap: 4px;
   border-radius: 8px;
+  margin: 2px 0;
+}
+.history-item.active { background: #2a2a2a; }
+.history-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 10px;
+  flex: 1;
+  cursor: pointer;
+}
+.delete-chat {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.delete-chat:hover { background: #444; }
+.profile {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
   margin-top: 10px;
 }
-
-.composer {
-  position: relative;
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  border-top: 1px solid var(--line);
-  background: #03101de8;
+.profile-row { display: flex; align-items: center; gap: 10px; padding: 8px; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #6750a4; display: grid; place-items: center;
+  font-size: 13px; font-weight: 700;
 }
+.profile-name { font-size: 13px; font-weight: 600; }
+.profile-sub { color: var(--muted); font-size: 11px; margin-top: 3px; }
 
-textarea {
-  resize: vertical;
-  min-height: 48px;
-  max-height: 160px;
-  flex: 1;
-  min-width: 0;
-  padding: 12px;
-  background: #010b17;
+/* MAIN CHAT */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+.topbar {
+  height: 60px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--main);
+}
+.top-left { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.mobile-menu { display: none; }
+.model-select {
+  background: transparent;
   color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  outline: none;
+  border: 0;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 17px;
+  font-weight: 600;
 }
-
-textarea:focus, input:focus, select:focus {
-  border-color: var(--cyan);
-  box-shadow: 0 0 10px #43eaff18;
+.model-select:hover { background: var(--hover); }
+.model-sub { color: var(--muted); font-size: 12px; }
+.top-actions { display: flex; gap: 5px; align-items: center; }
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block; background: #e0a43a; margin-right: 6px;
 }
+.status { font-size: 12px; color: var(--muted); }
 
-.send {
-  border-radius: 8px;
-  padding: 0 18px;
+.chat-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
-
-.rail { display: flex; flex-direction: column; gap: 12px; }
-
-.hud {
-  padding: 13px;
-  border-radius: 10px;
+.chat-inner {
+  max-width: 790px;
+  margin: 0 auto;
+  padding: 30px 24px 35px;
+  width: 100%;
 }
-
-.hud h3 {
-  margin: 0 0 10px;
-  color: #78a9bb;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 2px;
-}
-
-.metric {
-  display: flex;
-  justify-content: space-between;
-  gap: 5px;
-  padding: 8px 0;
-  border-bottom: 1px solid #43eaff18;
-  font-size: 11px;
-}
-
-.metric span:last-child { color: var(--cyan); text-align: right; }
-
-.wave {
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-}
-
-.wave i {
-  width: 3px;
-  height: 12px;
-  background: var(--cyan);
-  border-radius: 3px;
-  box-shadow: 0 0 6px var(--cyan);
-  animation: wave .9s ease-in-out infinite alternate;
-}
-
-.wave i:nth-child(3n) { animation-delay: .2s; }
-.wave i:nth-child(2n) { animation-delay: .4s; }
-.wave.off i { animation-play-state: paused; height: 3px; }
-
-.quick {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.quick .btn {
-  text-align: center;
-  font-size: 11px;
-  padding: 8px 3px;
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 5;
-  padding: 16px;
-  overflow: auto;
-  background: #010711ef;
-  backdrop-filter: blur(12px);
-}
-
-.modal.open { display: block; }
-
-.modalinner {
-  max-width: 800px;
-  margin: 15px auto;
-  padding: 20px;
-  border-radius: 14px;
-}
-
-.modalhead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 15px;
-}
-
-.fields {
-  display: grid;
-  grid-template-columns: repeat(3,minmax(0,1fr));
-  gap: 10px;
-}
-
-.field {
+.welcome {
+  min-height: 55vh;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  color: #78a9bb;
-  font-size: 11px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 15px;
 }
-
-.field input, .field select {
-  width: 100%;
-  padding: 9px;
-  color: var(--text);
-  background: #03101d;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+.welcome-logo {
+  width: 54px; height: 54px; border-radius: 17px;
+  background: var(--accent); display: grid; place-items: center;
+  font-size: 30px; font-weight: 800; margin-bottom: 5px;
 }
+.welcome h1 { font-size: 29px; letter-spacing: -.9px; margin: 0; font-weight: 600; }
+.welcome p { margin: 0; color: var(--muted); font-size: 15px; }
+.suggestions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; width: min(100%, 570px); margin-top: 20px;
+}
+.suggestion {
+  border: 1px solid #414141; background: transparent;
+  color: #dedede; text-align: left; padding: 14px;
+  border-radius: 13px; font-size: 13px; line-height: 1.45;
+}
+.suggestion:hover { background: var(--hover); }
+.suggestion strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.message { display: flex; gap: 15px; margin: 25px 0; align-items: flex-start; }
+.message-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  flex-shrink: 0; display: grid; place-items: center;
+  font-size: 15px; font-weight: 700;
+}
+.user-avatar { background: #6750a4; }
+.nova-avatar { background: var(--accent); color: white; }
+.message-content { flex: 1; min-width: 0; line-height: 1.7; font-size: 15px; overflow-wrap: anywhere; }
+.message-content p { margin: 0 0 12px; }
+.message-content p:last-child { margin-bottom: 0; }
+.message-content pre {
+  background: #141414; border: 1px solid var(--border);
+  padding: 14px; border-radius: 10px; overflow-x: auto;
+  white-space: pre-wrap;
+}
+.message-content code { font-family: ui-monospace, monospace; font-size: 13px; }
+.message-content img { max-width: 100%; border-radius: 12px; margin-top: 10px; }
+.message-tools { display: flex; gap: 5px; margin-top: 9px; }
+.message-tools button {
+  border: 0; background: transparent; color: var(--muted);
+  border-radius: 6px; padding: 5px 7px; font-size: 13px;
+}
+.message-tools button:hover { background: var(--hover); color: white; }
+.typing { color: var(--muted); display: flex; gap: 5px; padding: 5px 0; }
+.typing span { animation: blink 1s infinite; }
+.typing span:nth-child(2) { animation-delay: .15s; }
+.typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%,80%,100% { opacity: .25; } 40% { opacity: 1; } }
 
-.field input[type=color] { height: 36px; padding: 3px; }
-.field input[type=range] { padding: 0; }
-
-.hidden { display: none !important; }
-.mobilemenu { display: none; }
-
+/* COMPOSER */
+.composer-area {
+  flex-shrink: 0;
+  padding: 12px 20px 13px;
+  background: linear-gradient(transparent, var(--main) 18%);
+}
+.composer-wrap { max-width: 790px; margin: 0 auto; }
+.composer {
+  background: #303030;
+  border: 1px solid #454545;
+  border-radius: 25px;
+  padding: 10px 12px;
+  box-shadow: 0 5px 25px #00000012;
+}
+.composer:focus-within { border-color: #555; }
+#prompt {
+  display: block; width: 100%; resize: none; outline: none;
+  border: 0; background: transparent; color: var(--text);
+  padding: 7px 7px 12px; min-height: 42px; max-height: 180px;
+  line-height: 1.5; font-size: 15px;
+}
+#prompt::placeholder { color: #a6a6a6; }
+.composer-bottom { display: flex; align-items: center; justify-content: space-between; }
+.composer-tools { display: flex; align-items: center; gap: 5px; }
+.tool-btn {
+  border: 0; background: transparent; color: #c3c3c3;
+  border-radius: 50%; min-width: 35px; height: 35px;
+  display: grid; place-items: center; font-size: 20px;
+}
+.tool-btn:hover { background: #454545; }
+.tool-btn:disabled { opacity: .4; cursor: default; }
+.send-btn {
+  width: 36px; height: 36px; border: 0; border-radius: 50%;
+  background: #f3f3f3; color: #1b1b1b; font-size: 20px;
+  display: grid; place-items: center; font-weight: 700;
+}
+.send-btn:hover { background: #d7d7d7; }
+.send-btn:disabled { opacity: .4; cursor: default; }
+.disclaimer { text-align: center; color: #8f8f8f; font-size: 11px; margin-top: 10px; }
 .toast {
-  display: none;
-  position: fixed;
-  z-index: 10;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #08263a;
-  border: 1px solid var(--cyan);
-  padding: 10px 16px;
-  border-radius: 30px;
+  position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+  background: #333; border: 1px solid #555; border-radius: 10px;
+  padding: 10px 15px; font-size: 13px; z-index: 10; display: none;
 }
-
-.toast.show { display: block; }
-
-@keyframes wave {
-  to { height: 35px; opacity: .6; }
+.file-chip {
+  display: none; margin: 0 5px 8px; padding: 7px 10px;
+  background: #414141; border-radius: 9px; font-size: 12px;
 }
+#imageInput { display: none; }
 
-@media(max-width:1050px) {
-  .app { grid-template-columns: 200px minmax(0,1fr); }
-  .layout { grid-template-columns: 1fr; }
-  .rail { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
-  .chat { min-height: 65vh; }
-}
-
-@media(max-width:700px) {
-  .app { display: block; padding: 8px; }
+@media (max-width: 700px) {
   .sidebar {
-    display: none;
-    position: fixed;
-    z-index: 4;
-    top: 8px;
-    bottom: 8px;
-    left: 8px;
-    width: min(290px,88vw);
-    background: #041322f7;
+    position: fixed; z-index: 30; inset: 0 auto 0 0;
+    width: 270px; transform: translateX(-100%);
   }
-  .sidebar.open { display: flex; }
-  .mobilemenu { display: inline-block; }
-  .topbar { padding: 10px; }
-  .topbar-title { font-size: 9px; }
-  .chip { display: none; }
-  .layout { display: flex; flex-direction: column; }
-  .chat { min-height: 65vh; }
-  .rail { grid-template-columns: 1fr 1fr; }
-  .rail .hud:last-child { grid-column: 1/-1; }
-  .fields { grid-template-columns: 1fr 1fr; }
-}
-
-@media(max-width:430px) {
-  .rail, .fields { grid-template-columns: 1fr; }
-  .rail .hud:last-child { grid-column: auto; }
+  .sidebar.open { transform: translateX(0); }
+  .mobile-menu { display: grid; }
+  .topbar { padding: 0 10px; }
+  .chat-inner { padding: 18px 16px 25px; }
+  .composer-area { padding: 8px 10px 10px; }
+  .welcome { min-height: 45vh; }
+  .welcome h1 { font-size: 25px; }
+  .suggestions { grid-template-columns: 1fr; }
+  .suggestion:nth-child(n+3) { display: none; }
+  .status { display: none; }
 }
 </style>
 </head>
-
 <body>
 <div class="app">
-
   <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="logo">N</div>
-      <div>
-        <div class="brandname" id="brandname">NOVA</div>
-        <div class="sub" id="subtitle">Holographic intelligence</div>
-      </div>
+    <div class="sidebar-top">
+      <div class="brand"><div class="logo">N</div> Nova</div>
+      <button class="icon-btn" id="closeSidebar" title="Close sidebar">☰</button>
     </div>
 
-    <div class="status"><span class="led"></span>SYSTEM ONLINE</div>
+    <button class="side-btn" id="newChat"><span class="symbol">＋</span> New chat</button>
+    <button class="side-btn" id="imageMode"><span class="symbol">▧</span> Create an image</button>
+    <button class="side-btn" id="voiceMode"><span class="symbol">♩</span> Voice input</button>
 
-    <button class="btn primary" id="new">+ New session</button>
-
-    <div class="section">Recent sessions</div>
+    <div class="section-label">Your chats</div>
     <div class="history" id="history"></div>
 
-    <div class="bottom">
-      <button class="btn" id="customize">⚙ Customize interface</button>
-      <div class="small">NOVA AI / HOLOGRAPHIC UI</div>
+    <div class="profile">
+      <button class="side-btn" id="settingsBtn"><span class="symbol">⚙</span> Settings</button>
+      <div class="profile-row">
+        <div class="avatar">N</div>
+        <div><div class="profile-name">Nova User</div><div class="profile-sub">Personal assistant</div></div>
+      </div>
     </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <button class="btn mobilemenu" id="menu">☰</button>
-      <div class="topbar-title">NOVA / HOLOGRAPHIC COMMAND</div>
-      <div class="actions">
-        <span class="chip" id="chatstatus">AWAITING INPUT</span>
-        <button class="btn" id="settingsBtn">⚙</button>
+      <div class="top-left">
+        <button class="icon-btn mobile-menu" id="openSidebar" title="Open menu">☰</button>
+        <button class="model-select" id="modelBtn">Nova <span style="color:#999;font-size:13px">⌄</span></button>
+        <span class="model-sub">AI assistant</span>
+      </div>
+      <div class="top-actions">
+        <span class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Connecting...</span></span>
+        <button class="icon-btn" id="clearBtn" title="New chat">＋</button>
       </div>
     </header>
 
-    <div class="layout">
-      <section class="work">
-        <!-- The large hologram at the top has been removed. -->
-        <section class="chat">
-          <div class="panelhead">
-            <span>COMMUNICATION CHANNEL</span>
-            <span>◈ NOVA ONLINE</span>
+    <div class="toast" id="toast"></div>
+
+    <section class="chat-scroll" id="chatScroll">
+      <div class="chat-inner" id="chatInner">
+        <div class="welcome" id="welcome">
+          <div class="welcome-logo">N</div>
+          <h1>What can I help with?</h1>
+          <p>Ask Nova anything.</p>
+          <div class="suggestions">
+            <button class="suggestion" data-prompt="Explain a difficult topic in a simple way."><strong>📚 Learn something</strong>Explain a difficult topic simply</button>
+            <button class="suggestion" data-prompt="Give me some creative ideas for a project."><strong>💡 Brainstorm ideas</strong>Come up with something creative</button>
+            <button class="suggestion" data-prompt="Help me write or improve something."><strong>✍️ Write something</strong>Get help with writing</button>
+            <button class="suggestion" data-prompt="Make me an image of a futuristic AI assistant in a cinematic style."><strong>🎨 Create an image</strong>Turn an idea into an image</button>
           </div>
+        </div>
+        <div id="messages"></div>
+      </div>
+    </section>
 
-          <div class="messages" id="messages"></div>
-
-          <form class="composer" id="composer">
-            <textarea id="prompt" placeholder="Ask Nova anything..." required></textarea>
-            <button class="send" id="send" type="submit">Send</button>
-          </form>
-        </section>
-      </section>
-
-      <aside class="rail">
-        <section class="hud" id="diagnostics">
-          <h3>SYSTEM DIAGNOSTICS</h3>
-          <div class="metric"><span>Connection</span><span id="connectionStatus">READY</span></div>
-          <div class="metric"><span>AI Engine</span><span>GROQ</span></div>
-          <div class="metric"><span>Interface</span><span>HOLOGRAPHIC</span></div>
-          <div class="metric"><span>Mode</span><span id="mode">STANDBY</span></div>
-        </section>
-
-        <section class="hud">
-          <h3>VOICE INTERFACE</h3>
-          <div class="wave off" id="wave"></div>
-          <div class="small" id="voicehint">VOICE CHANNEL STANDBY</div>
-          <div style="display:flex;gap:7px;margin-top:12px">
-            <button class="btn" id="voice">🎙 Voice</button>
-            <button class="btn" id="speak">▶ Speak</button>
+    <footer class="composer-area">
+      <div class="composer-wrap">
+        <div class="composer">
+          <div class="file-chip" id="fileChip"></div>
+          <textarea id="prompt" rows="1" placeholder="Message Nova" aria-label="Message Nova"></textarea>
+          <div class="composer-bottom">
+            <div class="composer-tools">
+              <button class="tool-btn" id="attachBtn" title="Attach an image">＋</button>
+              <button class="tool-btn" id="imageBtn" title="Generate an image">▧</button>
+              <button class="tool-btn" id="micBtn" title="Voice input">🎙</button>
+              <input id="imageInput" type="file" accept="image/*">
+            </div>
+            <button class="send-btn" id="sendBtn" title="Send message">↑</button>
           </div>
-        </section>
-
-        <section class="hud">
-          <h3>QUICK COMMANDS</h3>
-          <div class="quick">
-            <button class="btn" data-prompt="Explain something interesting to me.">Explain</button>
-            <button class="btn" data-prompt="Give me three creative ideas.">Ideas</button>
-            <button class="btn" data-prompt="Help me plan my day.">Plan</button>
-            <button class="btn" data-prompt="Make me an image of a futuristic city.">Make image</button>
-          </div>
-        </section>
-      </aside>
-    </div>
+        </div>
+        <div class="disclaimer">Nova can make mistakes. Check important information.</div>
+      </div>
+    </footer>
   </main>
 </div>
 
-<div class="modal" id="modal">
-  <div class="modalinner">
-    <div class="modalhead">
-      <strong>INTERFACE CALIBRATION</strong>
-      <button class="btn" id="close">✕</button>
-    </div>
-
-    <div class="fields">
-      <label class="field">Assistant name<input id="sName" value="NOVA"></label>
-      <label class="field">Subtitle<input id="sSubtitle" value="Holographic intelligence"></label>
-      <label class="field">Accent color<input id="sAccent" type="color" value="#43eaff"></label>
-      <label class="field">Secondary color<input id="sOrange" type="color" value="#ff9b43"></label>
-      <label class="field">Background color<input id="sBg" type="color" value="#030913"></label>
-      <label class="field">Text color<input id="sText" type="color" value="#d8faff"></label>
-      <label class="field">Panel opacity<input id="sOpacity" type="range" min="20" max="100" value="85"><span id="opval">85%</span></label>
-      <label class="field">Interface glow<input id="sGlow" type="range" min="0" max="40" value="22"><span id="glowval">22px</span></label>
-      <label class="field">Diagnostics<select id="sDiag"><option value="show">Show</option><option value="hide">Hide</option></select></label>
-      <label class="field">Visualizer<select id="sVis"><option value="bars">Animated bars</option><option value="quiet">Minimal</option></select></label>
-    </div>
-
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:15px">
-      <button class="btn primary" id="saveSettings">Save calibration</button>
-      <button class="btn" id="reset">Reset defaults</button>
-      <button class="btn" id="export">Export settings</button>
-      <label class="btn">Import settings<input id="import" type="file" accept="application/json" hidden></label>
-    </div>
-
-    <p class="small">Keep your API keys in Cloudflare Worker secrets, never in this page.</p>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
 <script>
-(() => {
-  const WORKER_URL = "https://nova-brain.elijahmfiji.workers.dev";
-  const $ = id => document.getElementById(id);
+const WORKER_URL = "https://nova-brain.elijahmfiji.workers.dev";
 
-  const defaults = {
-    name: "NOVA",
-    subtitle: "Holographic intelligence",
-    accent: "#43eaff",
-    orange: "#ff9b43",
-    bg: "#030913",
-    text: "#d8faff",
-    opacity: 85,
-    glow: 22,
-    diag: "show",
-    vis: "bars"
-  };
+const $ = id => document.getElementById(id);
+const promptBox = $("prompt");
+const messagesBox = $("messages");
+const welcome = $("welcome");
+const historyBox = $("history");
 
-  let cfg = {...defaults};
-  let chats = [];
-  let current = null;
-  let busy = false;
-  let lastReply = "";
-  let rec = null;
-  let listening = false;
+let chats = [];
+let activeChatId = null;
+let busy = false;
+let attachedImage = null;
+let imageMode = false;
 
-  for (let i = 0; i < 25; i++) {
-    const bar = document.createElement("i");
-    bar.style.animationDelay = (i % 8) * .1 + "s";
-    $("wave").appendChild(bar);
-  }
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
 
-  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
+function createChat() {
+  const chat = { id: makeId(), title: "New chat", messages: [] };
+  chats.unshift(chat);
+  activeChatId = chat.id;
+  renderHistory();
+  renderMessages();
+  promptBox.focus();
+}
+
+function activeChat() {
+  return chats.find(c => c.id === activeChatId);
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
   }[c]));
+}
 
-  function toast(message) {
-    const el = $("toast");
-    el.textContent = message;
-    el.classList.add("show");
-    setTimeout(() => el.classList.remove("show"), 2500);
-  }
+function formatText(text) {
+  let safe = escapeHtml(text);
+  safe = safe.replace(/```([\w-]*)\n?([\s\S]*?)```/g, (_, lang, code) =>
+    `<pre><code>${code.trim()}</code></pre>`
+  );
+  safe = safe.replace(/`([^`]+)`/g, "<code>$1</code>");
+  safe = safe.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  safe = safe.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  safe = safe.replace(/\n/g, "<br>");
+  return safe;
+}
 
-  function apply() {
-    const root = document.documentElement;
+function renderHistory() {
+  historyBox.innerHTML = "";
+  chats.forEach(chat => {
+    const row = document.createElement("div");
+    row.className = "history-item" + (chat.id === activeChatId ? " active" : "");
 
-    root.style.setProperty("--bg", cfg.bg);
-    root.style.setProperty("--cyan", cfg.accent);
-    root.style.setProperty("--orange", cfg.orange);
-    root.style.setProperty("--text", cfg.text);
-    root.style.setProperty("--line", cfg.accent + "55");
-    root.style.setProperty("--panel", `rgba(5,22,39,${cfg.opacity / 100})`);
-
-    document.querySelectorAll(".sidebar,.topbar,.hud,.chat").forEach(el => {
-      el.style.boxShadow = `0 0 ${cfg.glow}px ${cfg.accent}15`;
-    });
-
-    $("brandname").textContent = cfg.name;
-    $("subtitle").textContent = cfg.subtitle;
-    $("diagnostics").classList.toggle("hidden", cfg.diag === "hide");
-    $("wave").classList.toggle("hidden", cfg.vis === "quiet");
-
-    $("opval").textContent = cfg.opacity + "%";
-    $("glowval").textContent = cfg.glow + "px";
-
-    renderMessages();
-  }
-
-  function save() {
-    try {
-      localStorage.setItem("nova-holo-config", JSON.stringify(cfg));
-      // Avoid saving generated image data, which can fill browser storage.
-      const safeChats = chats.map(c => ({
-        ...c,
-        messages: c.messages.map(m => ({
-          role: m.role,
-          content: m.content,
-          image: m.image ? "" : undefined
-        }))
-      }));
-      localStorage.setItem("nova-holo-chats", JSON.stringify(safeChats));
-    } catch (e) {
-      toast("Could not save browser data.");
-    }
-  }
-
-  function readForm() {
-    cfg = {
-      name: $("sName").value.trim() || "NOVA",
-      subtitle: $("sSubtitle").value,
-      accent: $("sAccent").value,
-      orange: $("sOrange").value,
-      bg: $("sBg").value,
-      text: $("sText").value,
-      opacity: +$("sOpacity").value,
-      glow: +$("sGlow").value,
-      diag: $("sDiag").value,
-      vis: $("sVis").value
-    };
-    apply();
-  }
-
-  function fillForm() {
-    const mapping = {
-      sName: "name",
-      sSubtitle: "subtitle",
-      sAccent: "accent",
-      sOrange: "orange",
-      sBg: "bg",
-      sText: "text",
-      sOpacity: "opacity",
-      sGlow: "glow",
-      sDiag: "diag",
-      sVis: "vis"
+    const title = document.createElement("div");
+    title.className = "history-title";
+    title.textContent = chat.title;
+    title.title = chat.title;
+    title.onclick = () => {
+      activeChatId = chat.id;
+      renderHistory();
+      renderMessages();
+      if (innerWidth <= 700) $("sidebar").classList.remove("open");
     };
 
-    Object.entries(mapping).forEach(([id, key]) => {
-      $(id).value = cfg[key];
-    });
-
-    apply();
-  }
-
-  function getChat() {
-    return chats.find(c => c.id === current);
-  }
-
-  function newChat() {
-    const c = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-      title: "New session",
-      messages: []
-    };
-
-    chats.unshift(c);
-    current = c.id;
-    save();
-    renderHistory();
-    renderMessages();
-    $("prompt").focus();
-  }
-
-  function renderHistory() {
-    $("history").innerHTML = "";
-
-    chats.slice(0, 20).forEach(c => {
-      const button = document.createElement("button");
-      button.className = "btn" + (c.id === current ? " active" : "");
-      button.textContent = c.title;
-
-      button.onclick = () => {
-        current = c.id;
-        renderHistory();
-        renderMessages();
-        $("sidebar").classList.remove("open");
-      };
-
-      $("history").appendChild(button);
-    });
-  }
-
-  function formatText(text) {
-    return esc(text)
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/`([^`]+)`/g, "<code>$1</code>")
-      .replace(/\n/g, "<br>");
-  }
-
-  function renderMessages() {
-    const container = $("messages");
-    const c = getChat();
-
-    if (!container) return;
-    container.innerHTML = "";
-
-    if (!c || !c.messages.length) {
-      container.innerHTML = `
-        <div class="msg">
-          <div class="who">${esc(cfg.name)} / ONLINE</div>
-          Systems online. I'm ready when you are.
-          Ask a question, use voice input, or request an image.
-        </div>`;
-      return;
-    }
-
-    c.messages.forEach(m => {
-      const div = document.createElement("div");
-      div.className = "msg " + (m.role === "user" ? "user" : "");
-
-      div.innerHTML = `
-        <div class="who">${m.role === "user" ? "YOU" : esc(cfg.name)}</div>
-        ${formatText(m.content)}
-      `;
-
-      if (m.image) {
-        const img = document.createElement("img");
-        img.alt = "Image generated by Nova";
-        img.src = m.image;
-        div.appendChild(img);
+    const del = document.createElement("button");
+    del.className = "delete-chat";
+    del.textContent = "×";
+    del.title = "Delete chat";
+    del.onclick = e => {
+      e.stopPropagation();
+      chats = chats.filter(c => c.id !== chat.id);
+      if (activeChatId === chat.id) {
+        activeChatId = chats[0]?.id || null;
+        if (!activeChatId) createChat();
       }
+      renderHistory();
+      renderMessages();
+    };
 
-      container.appendChild(div);
-    });
+    row.append(title, del);
+    historyBox.appendChild(row);
+  });
+}
 
-    container.scrollTop = container.scrollHeight;
-  }
+function renderMessages() {
+  const chat = activeChat();
+  messagesBox.innerHTML = "";
+  welcome.style.display = chat && chat.messages.length ? "none" : "flex";
 
-  function addMessage(role, content, image = "") {
-    const c = getChat();
-    if (!c) return;
+  if (!chat) return;
 
-    c.messages.push({role, content, image});
+  chat.messages.forEach((msg, index) => {
+    const row = document.createElement("div");
+    row.className = "message";
 
-    if (role === "user" && c.title === "New session") {
-      c.title = content.slice(0, 30) + (content.length > 30 ? "…" : "");
+    const avatar = document.createElement("div");
+    avatar.className = "message-avatar " +
+      (msg.role === "user" ? "user-avatar" : "nova-avatar");
+    avatar.textContent = msg.role === "user" ? "U" : "N";
+
+    const content = document.createElement("div");
+    content.className = "message-content";
+
+    if (msg.image) {
+      const img = document.createElement("img");
+      img.src = msg.image;
+      img.alt = "Image generated by Nova";
+      content.appendChild(img);
+    } else {
+      content.innerHTML = formatText(msg.content);
     }
 
-    save();
+    const tools = document.createElement("div");
+    tools.className = "message-tools";
+
+    if (msg.role === "assistant" && msg.content) {
+      const copy = document.createElement("button");
+      copy.textContent = "▢ Copy";
+      copy.onclick = () => {
+        navigator.clipboard.writeText(msg.content)
+          .then(() => showToast("Copied to clipboard"))
+          .catch(() => showToast("Couldn't copy automatically"));
+      };
+      tools.appendChild(copy);
+
+      const speak = document.createElement("button");
+      speak.textContent = "🔊 Read aloud";
+      speak.onclick = () => speakText(msg.content);
+      tools.appendChild(speak);
+    }
+
+    content.appendChild(tools);
+    row.append(avatar, content);
+    messagesBox.appendChild(row);
+  });
+
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  requestAnimationFrame(() => {
+    const scroller = $("chatScroll");
+    scroller.scrollTop = scroller.scrollHeight;
+  });
+}
+
+function showToast(text) {
+  const toast = $("toast");
+  toast.textContent = text;
+  toast.style.display = "block";
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.style.display = "none", 2400);
+}
+
+function addMessage(role, content, extra = {}) {
+  const chat = activeChat();
+  if (!chat) return;
+  chat.messages.push({ role, content, ...extra });
+
+  if (role === "user" && chat.title === "New chat") {
+    chat.title = content.slice(0, 32) + (content.length > 32 ? "…" : "");
     renderHistory();
-    renderMessages();
   }
+  renderMessages();
+}
 
-  function wantsImage(text) {
-    return /\b(make|create|generate|draw|design)\b.{0,50}\b(image|picture|artwork|illustration|wallpaper)\b|\b(image|picture|artwork|illustration|wallpaper)\b.{0,35}\b(of|for)\b/i.test(text);
-  }
+function showTyping() {
+  const row = document.createElement("div");
+  row.className = "message";
+  row.id = "typingRow";
+  row.innerHTML = '<div class="message-avatar nova-avatar">N</div><div class="message-content"><div class="typing"><span>●</span><span>●</span><span>●</span></div></div>';
+  messagesBox.appendChild(row);
+  scrollToBottom();
+}
 
-  async function send(text) {
-    text = text.trim();
-    if (!text || busy) return;
+function setBusy(value) {
+  busy = value;
+  $("sendBtn").disabled = value;
+  promptBox.disabled = value;
+  $("statusText").textContent = value ? "Thinking..." : "Ready";
+  $("statusDot").style.background = value ? "#e0a43a" : "#10a37f";
+}
 
-    if (!getChat()) newChat();
+async function sendMessage(forcedText) {
+  if (busy) return;
 
-    addMessage("user", text);
-    $("prompt").value = "";
-    busy = true;
+  const text = (forcedText ?? promptBox.value).trim();
+  if (!text && !attachedImage) return;
 
-    $("send").disabled = true;
-    $("chatstatus").textContent = "PROCESSING";
-    $("connectionStatus").textContent = "WORKING";
-    $("mode").textContent = "ACTIVE";
-    $("wave").classList.remove("off");
+  if (!activeChat()) createChat();
 
-    try {
-      const isImage = wantsImage(text);
-      const endpoint = isImage ? "/image" : "/chat";
+  const imageToAttach = attachedImage;
+  attachedImage = null;
+  $("fileChip").style.display = "none";
 
-      const payload = isImage
-        ? {prompt: text}
-        : {
-            messages: getChat().messages
-              .filter(m => !m.image)
-              .slice(-30)
-              .map(m => ({
-                role: m.role,
-                content: m.content.slice(0, 12000)
-              }))
-          };
+  promptBox.value = "";
+  resizeInput();
+  setBusy(true);
 
-      const response = await fetch(WORKER_URL + endpoint, {
+  addMessage("user", text || "What is in this image?", imageToAttach ? { image: imageToAttach } : {});
+  const chat = activeChat();
+
+  try {
+    // Generate an image when requested directly or through image mode.
+    const wantsImage = imageMode || /\b(make|create|generate|draw)\s+(me\s+)?(an?\s+)?image\b/i.test(text);
+
+    if (wantsImage) {
+      imageMode = false;
+      $("imageBtn").style.color = "";
+
+      const response = await fetch(WORKER_URL + "/image", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: text || "A beautiful imaginative digital artwork" })
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Image generation failed.");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Request failed");
-      }
-
-      if (isImage) {
-        const image = data.image || data.url;
-
-        if (!image) throw new Error("No image was returned by the Worker.");
-
-        addMessage("assistant", "Image generated.", image);
-        lastReply = "I've generated your image.";
-      } else {
-        const reply = data.reply || data.message || data.response;
-
-        if (!reply) throw new Error("The Worker returned an empty reply.");
-
-        addMessage("assistant", reply);
-        lastReply = reply;
-      }
-
-      $("connectionStatus").textContent = "CONNECTED";
-    } catch (error) {
-      addMessage(
-        "assistant",
-        "Connection error: " + error.message +
-        "\n\nCheck your Cloudflare Worker and its /chat and /image routes."
-      );
-      $("connectionStatus").textContent = "ERROR";
-    } finally {
-      busy = false;
-      $("send").disabled = false;
-      $("chatstatus").textContent = "AWAITING INPUT";
-      $("mode").textContent = "STANDBY";
-      $("wave").classList.add("off");
-      $("prompt").focus();
-    }
-  }
-
-  function openSettings() {
-    fillForm();
-    $("modal").classList.add("open");
-  }
-
-  function voice() {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      toast("Voice input is not supported in this browser.");
+      chat.messages.push({
+        role: "assistant",
+        content: "Here's your image.",
+        image: data.image
+      });
+      renderMessages();
       return;
     }
 
-    if (listening) {
-      rec.stop();
-      return;
-    }
+    const apiMessages = [
+      { role: "system", content:
+        "You are Nova, a helpful, friendly AI assistant. Be clear, accurate, and conversational. Format answers using Markdown when helpful. If the user asks for code, provide complete, copy-paste-ready code when practical. Never claim to have performed actions you did not perform."
+      },
+      ...chat.messages
+        .filter(m => !m.image && m.content)
+        .slice(-30)
+        .map(m => ({ role: m.role, content: m.content }))
+    ];
 
-    rec = new SpeechRecognition();
-    rec.lang = "en-US";
-
-    rec.onstart = () => {
-      listening = true;
-      $("voice").textContent = "● Listening";
-      $("wave").classList.remove("off");
-      $("voicehint").textContent = "LISTENING";
-    };
-
-    rec.onresult = event => {
-      $("prompt").value = event.results[0][0].transcript;
-      toast("Voice captured. Press Send when ready.");
-    };
-
-    rec.onerror = event => toast("Voice input: " + event.error);
-
-    rec.onend = () => {
-      listening = false;
-      $("voice").textContent = "🎙 Voice";
-      $("wave").classList.add("off");
-      $("voicehint").textContent = "VOICE CHANNEL STANDBY";
-    };
-
-    rec.start();
-  }
-
-  function speak() {
-    const previous = getChat()?.messages.slice().reverse()
-      .find(m => m.role === "assistant" && !m.image)?.content;
-
-    const text = lastReply || previous;
-
-    if (!text) return toast("No reply to read yet.");
-
-    if (!("speechSynthesis" in window)) {
-      return toast("Speech output is not supported.");
-    }
-
-    speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    utterance.onstart = () => {
-      $("wave").classList.remove("off");
-      $("voicehint").textContent = "SPEAKING";
-    };
-
-    utterance.onend = () => {
-      $("wave").classList.add("off");
-      $("voicehint").textContent = "VOICE CHANNEL STANDBY";
-    };
-
-    speechSynthesis.speak(utterance);
-  }
-
-  $("composer").addEventListener("submit", event => {
-    event.preventDefault();
-    send($("prompt").value);
-  });
-
-  $("prompt").addEventListener("keydown", event => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      $("composer").requestSubmit();
-    }
-  });
-
-  $("new").onclick = newChat;
-  $("customize").onclick = openSettings;
-  $("settingsBtn").onclick = openSettings;
-  $("close").onclick = () => $("modal").classList.remove("open");
-  $("menu").onclick = () => $("sidebar").classList.toggle("open");
-  $("voice").onclick = voice;
-  $("speak").onclick = speak;
-
-  $("saveSettings").onclick = () => {
-    readForm();
-    save();
-    $("modal").classList.remove("open");
-    toast("Calibration saved.");
-  };
-
-  $("reset").onclick = () => {
-    cfg = {...defaults};
-    fillForm();
-    save();
-    toast("Defaults restored.");
-  };
-
-  $("export").onclick = () => {
-    const file = new Blob([JSON.stringify(cfg, null, 2)], {
-      type: "application/json"
+    showTyping();
+    const response = await fetch(WORKER_URL + "/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: apiMessages })
     });
 
-    const url = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "nova-settings.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Nova couldn't respond.");
+    if (!data.reply) throw new Error("The server returned an empty reply.");
 
-  $("import").onchange = async event => {
-    try {
-      const file = event.target.files[0];
-      if (!file) return;
+    chat.messages.push({ role: "assistant", content: data.reply });
+  } catch (error) {
+    const row = $("typingRow");
+    if (row) row.remove();
 
-      cfg = {...defaults, ...JSON.parse(await file.text())};
-      fillForm();
-      save();
-      toast("Settings imported.");
-    } catch {
-      toast("Could not import settings.");
-    }
-
-    event.target.value = "";
-  };
-
-  [
-    "sName", "sSubtitle", "sAccent", "sOrange",
-    "sBg", "sText", "sOpacity", "sGlow", "sDiag", "sVis"
-  ].forEach(id => $(id).addEventListener("input", readForm));
-
-  document.querySelectorAll("[data-prompt]").forEach(button => {
-    button.onclick = () => send(button.dataset.prompt);
-  });
-
-  $("voicestatus")?.textContent =
-    (window.SpeechRecognition || window.webkitSpeechRecognition)
-      ? "AVAILABLE"
-      : "LIMITED";
-
-  try {
-    cfg = {
-      ...defaults,
-      ...JSON.parse(localStorage.getItem("nova-holo-config") || "{}")
-    };
-
-    chats = JSON.parse(localStorage.getItem("nova-holo-chats") || "[]");
-  } catch {
-    cfg = {...defaults};
-    chats = [];
-  }
-
-  fillForm();
-
-  if (!chats.length) {
-    newChat();
-  } else {
-    current = chats[0].id;
+    addMessage("assistant", "I couldn't connect right now. " + error.message +
+      "\n\nCheck that your Cloudflare Worker is deployed and that its `/chat` and `/image` endpoints are working.");
+  } finally {
+    const row = $("typingRow");
+    if (row) row.remove();
+    setBusy(false);
     renderHistory();
     renderMessages();
+    promptBox.focus();
   }
-})();
+}
+
+function resizeInput() {
+  promptBox.style.height = "auto";
+  promptBox.style.height = Math.min(promptBox.scrollHeight, 180) + "px";
+}
+
+function speakText(text) {
+  if (!("speechSynthesis" in window)) {
+    showToast("Text-to-speech isn't supported in this browser.");
+    return;
+  }
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1;
+  speechSynthesis.speak(utterance);
+}
+
+function startVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast("Voice input isn't supported in this browser.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.onstart = () => showToast("Listening...");
+  recognition.onresult = event => {
+    promptBox.value = event.results[0][0].transcript;
+    resizeInput();
+    promptBox.focus();
+  };
+  recognition.onerror = () => showToast("Couldn't hear that. Try again.");
+  recognition.start();
+}
+
+async function checkConnection() {
+  try {
+    const response = await fetch(WORKER_URL + "/");
+    if (!response.ok) throw new Error();
+    $("statusText").textContent = "Online";
+    $("statusDot").style.background = "#10a37f";
+  } catch {
+    $("statusText").textContent = "Check connection";
+    $("statusDot").style.background = "#e05252";
+  }
+}
+
+$("sendBtn").onclick = () => sendMessage();
+promptBox.addEventListener("input", resizeInput);
+promptBox.addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+});
+
+$("newChat").onclick = () => createChat();
+$("clearBtn").onclick = () => createChat();
+$("closeSidebar").onclick = () => $("sidebar").classList.remove("open");
+$("openSidebar").onclick = () => $("sidebar").classList.toggle("open");
+
+$("imageBtn").onclick = () => {
+  imageMode = !imageMode;
+  $("imageBtn").style.color = imageMode ? "var(--accent)" : "";
+  promptBox.placeholder = imageMode ? "Describe the image you want to create..." : "Message Nova";
+  promptBox.focus();
+  if (imageMode) showToast("Image mode on — describe what you want.");
+};
+
+$("imageMode").onclick = () => {
+  imageMode = true;
+  $("imageBtn").style.color = "var(--accent)";
+  promptBox.placeholder = "Describe the image you want to create...";
+  promptBox.focus();
+  if (innerWidth <= 700) $("sidebar").classList.remove("open");
+};
+
+$("micBtn").onclick = startVoice;
+$("voiceMode").onclick = startVoice;
+$("attachBtn").onclick = () => $("imageInput").click();
+
+$("imageInput").onchange = event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    showToast("Please choose an image file.");
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("Please choose an image under 5 MB.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    attachedImage = reader.result;
+    $("fileChip").textContent = "📎 " + file.name + "  ×";
+    $("fileChip").style.display = "block";
+    $("fileChip").onclick = () => {
+      attachedImage = null;
+      $("fileChip").style.display = "none";
+    };
+    promptBox.focus();
+  };
+  reader.readAsDataURL(file);
+  event.target.value = "";
+};
+
+$("settingsBtn").onclick = () => {
+  const color = prompt("Choose an accent color (hex), for example #10a37f:", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim());
+  if (color && /^#[0-9a-f]{6}$/i.test(color.trim())) {
+    document.documentElement.style.setProperty("--accent", color.trim());
+    showToast("Accent color updated");
+  } else if (color) {
+    showToast("Enter a valid hex color like #10a37f");
+  }
+};
+
+$("modelBtn").onclick = () => showToast("Nova is powered by your connected Cloudflare Worker and Groq model.");
+
+document.querySelectorAll(".suggestion").forEach(button => {
+  button.onclick = () => {
+    promptBox.value = button.dataset.prompt;
+    resizeInput();
+    sendMessage();
+  };
+});
+
+createChat();
+checkConnection();
+setInterval(checkConnection, 60000);
 </script>
 </body>
 </html>

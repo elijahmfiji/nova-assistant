@@ -1,227 +1,464 @@
 
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const CHAT_MODEL = "openai/gpt-oss-120b";
-const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050816">
+<title>Nova | Holographic AI</title>
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      ...CORS_HEADERS,
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
-    },
-  });
+:root {
+  --bg:#050816;
+  --panel:rgba(10,19,43,.78);
+  --cyan:#52efff;
+  --blue:#5794ff;
+  --purple:#b66bff;
+  --pink:#ff66df;
+  --text:#eaf7ff;
+  --muted:#8fa8c9;
+  --border:rgba(93,224,255,.25);
 }
-
-function errorMessage(error) {
-  return error instanceof Error ? error.message : String(error);
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font-family:Inter,Arial,sans-serif;
+  background:radial-gradient(ellipse at 15% 10%,#16366b66,transparent 45%),
+  radial-gradient(ellipse at 90% 20%,#7628b544,transparent 45%),var(--bg);
+  overflow-x:hidden;
 }
+button,textarea{font:inherit}
+button{cursor:pointer;color:inherit}
+#space{position:fixed;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none}
+.aurora{position:fixed;z-index:-1;width:40vw;height:40vw;border-radius:50%;filter:blur(90px);opacity:.13;pointer-events:none;animation:drift 18s ease-in-out infinite alternate}
+.a{background:#00d9ff;top:-15%;left:-10%}
+.b{background:#9a40ff;right:-15%;top:25%;animation-delay:-8s}
+.grid{position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(#46a8ff09 1px,transparent 1px),linear-gradient(90deg,#46a8ff09 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(black,transparent 90%);animation:gridmove 35s linear infinite}
+.app{width:min(1180px,100%);min-height:100vh;margin:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.panel,.topbar{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:20px;background:var(--panel);backdrop-filter:blur(20px);box-shadow:0 0 25px #52efff12,inset 0 0 30px #52efff05;animation:appear .7s both}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:12px}
+.topbar:after,.panel:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 25%,#6feaff0b 50%,transparent 75%);transform:translateX(-120%);animation:sweep 10s ease-in-out infinite}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:45px;height:45px;border-radius:14px;display:grid;place-items:center;font:800 24px Orbitron;color:white;border:1px solid #52efff99;background:linear-gradient(135deg,#52efff30,#b66bff38);box-shadow:0 0 22px #52efff30;animation:pulse 4s infinite}
+.brand h1{font:700 19px Orbitron;letter-spacing:3px;margin:0;background:linear-gradient(90deg,#fff,var(--cyan),#d7a3ff);color:transparent;background-clip:text}
+.brand p{margin:5px 0 0;font-size:10px;letter-spacing:2px;color:var(--muted)}
+.status{display:flex;align-items:center;gap:8px;color:#b9faff;font-size:10px;letter-spacing:1px}
+.dot{width:8px;height:8px;background:#52ffbb;border-radius:50%;box-shadow:0 0 12px #52ffbb;animation:blink 2s infinite}
+.layout{display:grid;grid-template-columns:285px minmax(0,1fr);gap:16px;flex:1;min-height:680px}
+.sidebar{display:flex;flex-direction:column;gap:16px}
+.core-panel{padding:18px;display:flex;align-items:center;flex-direction:column;min-height:310px}
+.eyebrow{font:11px Orbitron;letter-spacing:2px;color:var(--muted)}
+.core-stage{width:230px;height:230px;position:relative;display:grid;place-items:center;perspective:800px}
+.core-stage:before{content:"";position:absolute;width:185px;height:185px;border:1px solid #52efff35;border-radius:50%;box-shadow:0 0 45px #52efff16,inset 0 0 30px #52efff12;animation:breathe 4s infinite}
+.core-stage:after{content:"";position:absolute;width:150px;height:150px;border:1px dashed #b66bff80;border-radius:50%;animation:spin 18s linear infinite reverse}
+.core{width:100px;height:100px;position:relative;display:grid;place-items:center;border-radius:50%;font:700 28px Orbitron;color:white;background:radial-gradient(circle at 32% 25%,white 0%,#9cf9ff 7%,#34baff 22%,#5c58ff 52%,#9c3aff 75%,#051329 100%);box-shadow:0 0 20px #55eaff,0 0 50px #31aaff99,0 0 90px #9c3aff55,inset -10px -12px 28px #00002caa,inset 8px 8px 18px #ffffff80;animation:float 4s ease-in-out infinite,corehue 5s infinite alternate}
+.core:before,.core:after{content:"";position:absolute;inset:-15px;border:2px solid #52efffa6;border-radius:50%;transform:rotateX(68deg);animation:spin 8s linear infinite}
+.core:after{inset:-24px;border-color:#b66bffb0;transform:rotateY(68deg);animation:spin 12s linear infinite reverse}
+.orbit{position:absolute;width:215px;height:78px;border:1px solid #52efff77;border-radius:50%;transform:rotate(-28deg);animation:orbit 12s linear infinite}
+.orbit.two{width:210px;height:95px;border-color:#ff66df66;animation-duration:16s;animation-direction:reverse}
+.orbit i{position:absolute;top:5px;left:50%;width:7px;height:7px;background:white;border-radius:50%;box-shadow:0 0 15px var(--cyan)}
+.core-label{font:10px Orbitron;letter-spacing:2px;color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;width:100%;margin-top:16px}
+.metric{text-align:center;padding:10px 2px;border:1px solid #52efff20;border-radius:11px;background:#52efff08}
+.metric strong{font:11px Orbitron;color:var(--cyan)}
+.metric span{display:block;font-size:9px;color:var(--muted);margin-top:6px}
+.tools{padding:16px}
+.tools h3{font:11px Orbitron;letter-spacing:2px;color:var(--muted)}
+.tool{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:12px;margin-top:8px;border:1px solid #52efff20;border-radius:12px;background:#52efff08;transition:.25s}
+.tool:hover{transform:translateX(4px);border-color:var(--cyan);background:#52efff17;box-shadow:0 0 20px #52efff12}
+.tool-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;color:var(--cyan);background:#52efff13;font-size:18px}
+.tool b{display:block;font-size:12px}.tool small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.main{display:flex;flex-direction:column;min-height:680px;min-width:0}
+.chat-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 20px;border-bottom:1px solid #52efff20}
+.chat-head h2{font:600 13px Orbitron;letter-spacing:1px;margin:0}
+.chat-head p{margin:6px 0 0;font-size:11px;color:var(--muted)}
+.tag{font:9px Orbitron;color:var(--cyan);border:1px solid #52efff40;border-radius:8px;padding:8px}
+.messages{flex:1;min-height:350px;max-height:calc(100vh - 360px);overflow-y:auto;display:flex;flex-direction:column;gap:17px;padding:20px;scrollbar-color:#52efff55 transparent}
+.welcome{text-align:center;margin:auto 0;padding:24px 10px;animation:fadeup 1s both}
+.welcome-icon{width:65px;height:65px;display:grid;place-items:center;margin:0 auto 17px;border-radius:20px;border:1px solid #52efff66;background:linear-gradient(135deg,#52efff30,#b66bff40);font:700 28px Orbitron;box-shadow:0 0 30px #52efff22;animation:pulse 4s infinite}
+.welcome h3{font:600 18px Orbitron}
+.welcome p{max-width:400px;margin:12px auto 20px;font-size:13px;line-height:1.7;color:var(--muted)}
+.suggestions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+.suggestion{padding:9px 12px;font-size:11px;color:#cceaff;border:1px solid #52efff35;border-radius:20px;background:#52efff09;transition:.2s}
+.suggestion:hover{transform:translateY(-3px);background:#52efff20;border-color:var(--cyan)}
+.message{display:flex;align-items:flex-start;gap:10px;animation:messagein .3s ease-out both}
+.message.user{flex-direction:row-reverse}
+.avatar{width:33px;height:33px;flex:0 0 auto;display:grid;place-items:center;border:1px solid #52efff45;border-radius:11px;background:#52efff12;color:var(--cyan);font:10px Orbitron}
+.message.user .avatar{color:#e5c6ff;border-color:#b66bff60;background:#b66bff1b}
+.bubble{max-width:85%;padding:12px 15px;border:1px solid #52efff2c;border-radius:4px 15px 15px 15px;background:#52efff09;font-size:13px;line-height:1.7;overflow-wrap:anywhere;white-space:pre-wrap}
+.message.user .bubble{border-color:#b66bff50;background:#8448cd20;border-radius:15px 4px 15px 15px}
+.bubble img{display:block;max-width:100%;width:min(440px,100%);height:auto;margin-top:10px;border:1px solid #52efff55;border-radius:12px;box-shadow:0 0 25px #52efff20}
+.bubble a{display:inline-block;margin-top:10px;color:var(--cyan);font-size:12px}
+.bubble code{color:var(--cyan);background:#0004;padding:2px 4px;border-radius:4px}
+.typing{display:flex;gap:5px;padding:8px 0}.typing span{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:bounce .8s infinite alternate}.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+.composer-wrap{padding:15px 18px 18px;border-top:1px solid #52efff20;background:#050a1959}
+.composer{display:flex;align-items:flex-end;gap:9px;padding:10px;border:1px solid #52efff40;border-radius:16px;background:#050d20d9;transition:.25s}
+.composer:focus-within{border-color:#52efffbf;box-shadow:0 0 0 3px #52efff0f,0 0 25px #52efff18}
+#prompt{width:100%;min-height:43px;max-height:150px;resize:vertical;padding:11px 8px;border:0;outline:0;color:var(--text);background:transparent;font-size:13px;line-height:1.5}
+#prompt::placeholder{color:#7187a9}
+.icon-btn,.send-btn{height:43px;min-width:43px;flex:0 0 auto;border:1px solid #52efff40;border-radius:12px;background:#52efff10;color:var(--cyan);transition:.2s}
+.icon-btn:hover,.send-btn:hover{transform:translateY(-2px);box-shadow:0 0 20px #52efff20}
+.send-btn{min-width:75px;padding:0 13px;background:linear-gradient(110deg,var(--cyan),#8cb5ff);color:#04121e;font-weight:700;border:0}
+.send-btn:disabled,.icon-btn:disabled{opacity:.5;cursor:wait;transform:none}
+.note{display:flex;justify-content:space-between;gap:10px;margin-top:9px;color:#7187a9;font-size:9px}
+.preview{display:none;margin-bottom:10px;padding:10px;border:1px solid #b66bff60;border-radius:10px;background:#b66bff12;font-size:11px;color:#e8d5ff}
+.preview.show{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.preview button{border:0;background:transparent;color:var(--cyan)}
+.footer{text-align:center;color:#647b9e;font-size:9px;letter-spacing:1.5px;padding:2px}
+.toast{position:fixed;z-index:10;bottom:20px;left:50%;transform:translate(-50%,15px);opacity:0;pointer-events:none;padding:12px 16px;max-width:90%;border:1px solid #52efff60;border-radius:12px;background:#071026;color:var(--text);font-size:12px;transition:.25s;box-shadow:0 0 25px #52efff18}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@keyframes drift{to{transform:translate(7%,8%) scale(1.12)}}
+@keyframes gridmove{to{background-position:42px 84px}}
+@keyframes appear{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sweep{0%,70%,100%{transform:translateX(-120%)}88%{transform:translateX(120%)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 18px #52efff22}50%{box-shadow:0 0 32px #52efff55}}
+@keyframes blink{50%{opacity:.35}}
+@keyframes breathe{50%{transform:scale(1.07);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes orbit{to{transform:rotate(332deg)}}
+@keyframes float{50%{transform:translateY(-8px) rotateY(8deg)}}
+@keyframes corehue{to{filter:hue-rotate(25deg) brightness(1.15)}}
+@keyframes fadeup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes messagein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{to{transform:translateY(-5px);opacity:.4}}
+@media(max-width:780px){
+ .app{padding:11px;gap:11px}.layout{grid-template-columns:1fr;min-height:auto}
+ .sidebar{display:grid;grid-template-columns:1fr}.tools{display:none}
+ .core-panel{min-height:260px}.core-stage{transform:scale(.85);margin:-6px auto -12px}
+ .main{min-height:65vh}.messages{min-height:320px;max-height:55vh;padding:15px}
+ .brand h1{font-size:16px}.brand p{font-size:9px}.status{font-size:9px}
+}
+@media(max-width:430px){
+ .topbar{padding:11px}.logo{width:38px;height:38px}.status{letter-spacing:0}
+ .chat-head{padding:13px}.composer-wrap{padding:11px}.send-btn{min-width:52px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
 
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
+<body>
+<canvas id="space"></canvas>
+<div class="aurora a"></div><div class="aurora b"></div><div class="grid"></div>
 
-    if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
-    }
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">N</div>
+      <div><h1>N O V A</h1><p>Personal AI Interface</p></div>
+    </div>
+    <div class="status"><span class="dot"></span><span id="status">SYSTEM ONLINE</span></div>
+  </header>
 
-    if (request.method === "GET" && url.pathname === "/") {
-      return json({
-        name: "Nova Brain",
-        status: "online",
-        routes: ["/chat", "/image"],
-      });
-    }
+  <div class="layout">
+    <aside class="sidebar">
+      <section class="panel core-panel">
+        <div class="eyebrow">HOLOGRAPHIC CORE</div>
+        <div class="core-stage">
+          <div class="orbit"><i></i></div>
+          <div class="orbit two"><i></i></div>
+          <div class="core">N</div>
+        </div>
+        <div class="core-label" id="coreState">NEURAL SYSTEM READY</div>
+        <div class="metrics">
+          <div class="metric"><strong>READY</strong><span>STATUS</span></div>
+          <div class="metric"><strong>AI</strong><span>ENGINE</span></div>
+          <div class="metric"><strong>LIVE</strong><span>INTERFACE</span></div>
+        </div>
+      </section>
 
-    if (request.method !== "POST") {
-      return json({ error: "Use POST for this endpoint." }, 405);
-    }
+      <section class="panel tools">
+        <h3>QUICK COMMANDS</h3>
+        <button class="tool" data-prompt="Give me three creative ideas for a project."><span class="tool-icon">✧</span><span><b>Idea Generator</b><small>Explore creative ideas</small></span></button>
+        <button class="tool" data-prompt="Help me plan my day with a simple schedule."><span class="tool-icon">◷</span><span><b>Plan My Day</b><small>Organize your tasks</small></span></button>
+        <button class="tool" data-image="true"><span class="tool-icon">▧</span><span><b>Image Generator</b><small>Create an image from text</small></span></button>
+        <button class="tool" data-prompt="Teach me something interesting in a simple way."><span class="tool-icon">⌘</span><span><b>Learn Something</b><small>Discover something new</small></span></button>
+      </section>
+    </aside>
 
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return json({ error: "Invalid JSON request body." }, 400);
-    }
+    <main class="panel main">
+      <div class="chat-head">
+        <div><h2>NOVA INTERFACE</h2><p>Your AI assistant is ready to help.</p></div>
+        <div class="tag">HOLO MODE</div>
+      </div>
 
-    // ---------------- CHAT ----------------
-    if (url.pathname === "/chat") {
-      if (!env.GROQ_API_KEY) {
-        return json({
-          error: "Missing GROQ_API_KEY secret in Cloudflare Worker settings.",
-        }, 500);
-      }
+      <div class="messages" id="messages" aria-live="polite">
+        <div class="welcome" id="welcome">
+          <div class="welcome-icon">N</div>
+          <h3>Welcome to Nova</h3>
+          <p>A holographic AI for questions, ideas, planning, and image creation. What shall we create today?</p>
+          <div class="suggestions">
+            <button class="suggestion" data-prompt="What can you help me with?">What can you do?</button>
+            <button class="suggestion" data-prompt="Give me a cool futuristic project idea.">Give me an idea</button>
+            <button class="suggestion" data-image="true">Create an image</button>
+          </div>
+        </div>
+      </div>
 
-      const messages = body.messages;
+      <div class="composer-wrap">
+        <div class="preview" id="preview"><span>▧ IMAGE MODE — describe what you want to create.</span><button id="cancelImage">Cancel</button></div>
+        <div class="composer">
+          <button class="icon-btn" id="imageMode" title="Toggle image generation" aria-label="Toggle image generation">▧</button>
+          <textarea id="prompt" rows="1" placeholder="Message Nova..." aria-label="Message Nova"></textarea>
+          <button class="send-btn" id="send">SEND ↗</button>
+        </div>
+        <div class="note"><span>ENTER TO SEND · SHIFT + ENTER FOR NEW LINE</span><span>AI RESPONSES MAY NEED CHECKING</span></div>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">NOVA INTERFACE · HOLOGRAPHIC SYSTEMS ONLINE</footer>
+</div>
+<div class="toast" id="toast"></div>
 
-      if (!Array.isArray(messages) || messages.length === 0) {
-        return json({ error: "Send a messages array." }, 400);
-      }
+<script>
+/* Must match your deployed Cloudflare Worker. */
+const WORKER_URL = "https://nova-brain.elijahmfiji.workers.dev";
 
-      // Only allow valid roles and text content from the conversation.
-      const safeMessages = messages
-        .filter(m =>
-          m &&
-          ["user", "assistant"].includes(m.role) &&
-          typeof m.content === "string"
-        )
-        .slice(-20)
-        .map(m => ({
-          role: m.role,
-          content: m.content.slice(0, 12000),
-        }));
+const $ = id => document.getElementById(id);
+const messagesEl = $("messages");
+const promptEl = $("prompt");
+let imageMode = false;
+let busy = false;
+let conversation = [];
+let toastTimer;
 
-      if (!safeMessages.length || safeMessages[safeMessages.length - 1].role !== "user") {
-        return json({ error: "The last message must be a user message." }, 400);
-      }
+function toast(text){
+  $("toast").textContent=text;
+  $("toast").classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>$("toast").classList.remove("show"),3500);
+}
+function setState(status,label){
+  $("status").textContent=status;
+  $("coreState").textContent=label;
+}
+function safeText(text){
+  return String(text).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+function formatText(text){
+  return safeText(text)
+    .replace(/`([^`]+)`/g,"<code>$1</code>")
+    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\n/g,"<br>");
+}
+function clearWelcome(){ $("welcome")?.remove(); }
 
-      try {
-        const response = await fetch(GROQ_URL, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${env.GROQ_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: CHAT_MODEL,
-            messages: [
-              {
-                role: "system",
-                content:
-                  "You are Nova, a helpful, friendly personal AI assistant. " +
-                  "Be clear, practical, and creative. Explain things simply when appropriate. " +
-                  "Never claim to have performed an action you did not perform."
-              },
-              ...safeMessages,
-            ],
-            temperature: 0.7,
-            max_completion_tokens: 1800,
-          }),
-        });
+function addMessage(role,text,imageUrl){
+  clearWelcome();
+  const row=document.createElement("div");
+  row.className="message "+(role==="user"?"user":"assistant");
+  const avatar=document.createElement("div");
+  avatar.className="avatar";
+  avatar.textContent=role==="user"?"YOU":"N";
+  const bubble=document.createElement("div");
+  bubble.className="bubble";
+  bubble.innerHTML=formatText(text||"");
 
-        const result = await response.json();
+  if(imageUrl){
+    const img=document.createElement("img");
+    img.alt="Image generated by Nova";
+    img.src=imageUrl;
+    img.loading="lazy";
+    img.onerror=()=>{img.alt="Image failed to display. Try generating it again.";};
+    bubble.appendChild(img);
 
-        if (!response.ok) {
-          console.error("Groq API error:", response.status, result);
-          return json({
-            error: result?.error?.message ||
-              `Chat provider returned HTTP ${response.status}. Check your Groq model and API key.`,
-          }, 502);
-        }
-
-        const reply = result?.choices?.[0]?.message?.content;
-
-        if (typeof reply !== "string" || !reply.trim()) {
-          console.error("Unexpected Groq response:", result);
-          return json({ error: "The AI provider returned an empty reply." }, 502);
-        }
-
-        return json({ reply: reply.trim() });
-      } catch (error) {
-        console.error("Chat request failed:", errorMessage(error));
-        return json({ error: "Chat request failed. Check the Worker logs." }, 502);
-      }
-    }
-
-    // ---------------- IMAGE GENERATION ----------------
-    if (url.pathname === "/image") {
-      // The Cloudflare dashboard must have an AI binding named AI.
-      if (!env.AI || typeof env.AI.run !== "function") {
-        return json({
-          error: "Cloudflare AI binding is missing. Add a Workers AI binding named AI.",
-        }, 500);
-      }
-
-      const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-
-      if (!prompt) {
-        return json({ error: "Enter a description for the image." }, 400);
-      }
-
-      if (prompt.length > 1500) {
-        return json({ error: "Please keep the image prompt under 1500 characters." }, 400);
-      }
-
-      try {
-        const result = await env.AI.run(IMAGE_MODEL, {
-          prompt: prompt,
-          num_steps: 4,
-        });
-
-        // FLUX.1-schnell normally returns { image: "base64..." }.
-        // Handle a few possible response formats without exposing secrets.
-        let image = result?.image;
-
-        if (!image && result instanceof ArrayBuffer) {
-          image = arrayBufferToBase64(result);
-        }
-
-        if (!image && result instanceof Uint8Array) {
-          image = arrayBufferToBase64(
-            result.buffer.slice(
-              result.byteOffset,
-              result.byteOffset + result.byteLength
-            )
-          );
-        }
-
-        if (!image && result?.data instanceof Uint8Array) {
-          image = arrayBufferToBase64(
-            result.data.buffer.slice(
-              result.data.byteOffset,
-              result.data.byteOffset + result.data.byteLength
-            )
-          );
-        }
-
-        if (typeof image !== "string" || !image.length) {
-          console.error(
-            "Unexpected Workers AI image response format:",
-            result ? Object.keys(result) : result
-          );
-          return json({
-            error: "The image model returned no image. Check Workers AI availability and Worker logs.",
-          }, 502);
-        }
-
-        // The frontend accepts a data URL, so return one consistently.
-        const dataUrl = image.startsWith("data:image/")
-          ? image
-          : `data:image/png;base64,${image}`;
-
-        return json({ image: dataUrl });
-      } catch (error) {
-        console.error("Image generation failed:", errorMessage(error));
-
-        return json({
-          error:
-            "Image generation failed. Check Cloudflare Workers AI access, " +
-            "model availability, usage limits, and the Worker logs.",
-        }, 502);
-      }
-    }
-
-    return json({
-      error: "Unknown endpoint. Use /chat or /image.",
-    }, 404);
-  },
-};
-
-function arrayBufferToBase64(buffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  const chunkSize = 0x8000;
-
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    const link=document.createElement("a");
+    link.href=imageUrl;
+    link.download="nova-image.png";
+    link.textContent="Download image";
+    bubble.appendChild(link);
   }
-
-  return btoa(binary);
+  row.append(avatar,bubble);
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop=messagesEl.scrollHeight;
 }
+function typing(){
+  clearWelcome();
+  const row=document.createElement("div");
+  row.id="typing";
+  row.className="message assistant";
+  row.innerHTML='<div class="avatar">N</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop=messagesEl.scrollHeight;
+}
+function stopTyping(){ $("typing")?.remove(); }
+
+async function getJson(response){
+  const text=await response.text();
+  let data;
+  try{data=JSON.parse(text);}
+  catch{throw new Error("Server returned an invalid response. Make sure your Cloudflare Worker is deployed.");}
+  if(!response.ok) throw new Error(data.error||`Server error: HTTP ${response.status}`);
+  return data;
+}
+
+async function chat(text){
+  conversation.push({role:"user",content:text});
+  typing();
+  setState("PROCESSING","NOVA THINKING...");
+  try{
+    const response=await fetch(WORKER_URL+"/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({messages:conversation})
+    });
+    const data=await getJson(response);
+    if(typeof data.reply!=="string"||!data.reply.trim())
+      throw new Error("The Worker did not return a chat reply.");
+    stopTyping();
+    conversation.push({role:"assistant",content:data.reply});
+    addMessage("assistant",data.reply);
+  }catch(error){
+    stopTyping();
+    addMessage("assistant","Chat request failed:\n"+error.message);
+    console.error("Nova chat error:",error);
+    toast("Chat failed. Check the Worker deployment.");
+  }finally{
+    setState("SYSTEM ONLINE","NEURAL SYSTEM READY");
+  }
+}
+
+async function generateImage(text){
+  typing();
+  setState("GENERATING","CREATING HOLOGRAM...");
+  try{
+    const response=await fetch(WORKER_URL+"/image",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt:text})
+    });
+    const data=await getJson(response);
+
+    let image=data.image||data.data?.image||data.result?.image;
+    if(typeof image!=="string"||!image.trim())
+      throw new Error("No image was returned. Check the Cloudflare Workers AI model and logs.");
+
+    if(image.startsWith("data:image/")){
+      // Already a data URL; display it directly.
+    }else if(image.startsWith("https://")){
+      // The Worker returned an image URL.
+    }else{
+      image="data:image/png;base64,"+image;
+    }
+
+    stopTyping();
+    addMessage("assistant","Your image is ready.",image);
+  }catch(error){
+    stopTyping();
+    addMessage("assistant",
+      "Nova couldn't generate the image.\n\n"+error.message+
+      "\n\nCheck Cloudflare → nova-brain → Logs for the specific error.");
+    console.error("Nova image error:",error);
+    toast("Image generation failed. Check Cloudflare logs.");
+  }finally{
+    setState("SYSTEM ONLINE","NEURAL SYSTEM READY");
+  }
+}
+
+function setImageMode(enabled){
+  imageMode=enabled;
+  $("preview").classList.toggle("show",enabled);
+  $("imageMode").style.borderColor=enabled?"#b66bff":"";
+  $("imageMode").style.background=enabled?"#b66bff30":"";
+  promptEl.placeholder=enabled?"Describe the image Nova should create...":"Message Nova...";
+  if(enabled)promptEl.focus();
+}
+
+async function submit(forcedMode=null){
+  const text=promptEl.value.trim();
+  if(!text||busy)return;
+  const makeImage=forcedMode===null?imageMode:forcedMode;
+
+  busy=true;
+  $("send").disabled=true;
+  $("imageMode").disabled=true;
+  addMessage("user",(makeImage?"Image prompt: ":"")+text);
+  promptEl.value="";
+  promptEl.style.height="auto";
+
+  if(makeImage)await generateImage(text);
+  else await chat(text);
+
+  busy=false;
+  $("send").disabled=false;
+  $("imageMode").disabled=false;
+  promptEl.focus();
+}
+
+$("send").addEventListener("click",()=>submit());
+promptEl.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){
+    e.preventDefault();
+    submit();
+  }
+});
+promptEl.addEventListener("input",()=>{
+  promptEl.style.height="auto";
+  promptEl.style.height=Math.min(promptEl.scrollHeight,150)+"px";
+});
+$("imageMode").addEventListener("click",()=>setImageMode(!imageMode));
+$("cancelImage").addEventListener("click",()=>setImageMode(false));
+
+document.querySelectorAll("[data-prompt]").forEach(button=>{
+  button.addEventListener("click",()=>{
+    promptEl.value=button.dataset.prompt;
+    setImageMode(false);
+    submit(false);
+  });
+});
+document.querySelectorAll("[data-image]").forEach(button=>{
+  button.addEventListener("click",()=>{
+    setImageMode(true);
+    promptEl.focus();
+  });
+});
+
+/* Animated starfield background. */
+(()=>{
+  const canvas=$("space");
+  const ctx=canvas.getContext("2d");
+  const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let w=0,h=0,stars=[],frame=0;
+
+  function resize(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    w=window.innerWidth;h=window.innerHeight;
+    canvas.width=Math.floor(w*dpr);
+    canvas.height=Math.floor(h*dpr);
+    canvas.style.width=w+"px";
+    canvas.style.height=h+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    stars=Array.from({length:Math.min(150,Math.floor(w*h/8500))},()=>({
+      x:Math.random()*w,y:Math.random()*h,
+      r:Math.random()*1.4+.2,a:Math.random()*.65+.15,
+      speed:Math.random()*.22+.04,phase:Math.random()*6.28
+    }));
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);frame++;
+    for(const s of stars){
+      const twinkle=reduced?1:.65+.35*Math.sin(frame*.025+s.phase);
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(155,225,255,${s.a*twinkle})`;
+      ctx.fill();
+      if(!reduced){
+        s.y-=s.speed;
+        if(s.y<-2){s.y=h+2;s.x=Math.random()*w;}
+      }
+    }
+    if(!reduced)requestAnimationFrame(draw);
+  }
+  window.addEventListener("resize",resize);
+  resize();draw();
+})();
+
+console.log("Nova loaded. Worker:",WORKER_URL);
+</script>
+</body>
+</html>

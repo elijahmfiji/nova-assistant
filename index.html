@@ -1,10 +1,11 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nova Holographic AI</title>
+<title>Nova AI</title>
+
 <style>
 :root {
   --bg: #030913;
@@ -12,291 +13,448 @@
   --orange: #ff9b43;
   --text: #d8faff;
   --line: #43eaff55;
-  --panel: rgba(5,22,39,.78);
-  --radius: 16px;
+  --panel: rgba(5,22,39,.85);
 }
+
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   min-height: 100vh;
   color: var(--text);
   font: 14px/1.5 "Segoe UI", system-ui, sans-serif;
-  background: radial-gradient(ellipse at 50% 40%, #0a2c45, var(--bg) 70%);
+  background: radial-gradient(ellipse at top, #0a2c45, var(--bg) 75%);
 }
-body:before {
+
+body::before {
   content: "";
   position: fixed;
   inset: 0;
+  z-index: -1;
   pointer-events: none;
   background-image:
     linear-gradient(#43eaff12 1px, transparent 1px),
     linear-gradient(90deg, #43eaff12 1px, transparent 1px);
-  background-size: 38px 38px;
-  mask-image: linear-gradient(#000, transparent);
-  z-index: -1;
+  background-size: 36px 36px;
 }
+
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; color: inherit; }
+
 .app {
   display: grid;
-  grid-template-columns: 235px 1fr;
-  gap: 13px;
-  padding: 13px;
+  grid-template-columns: 230px minmax(0,1fr);
+  gap: 12px;
+  padding: 12px;
   min-height: 100vh;
 }
-.panel, .sidebar, .topbar, .hero, .hud {
+
+.sidebar, .topbar, .hud, .chat, .modalinner {
   border: 1px solid var(--line);
   background: var(--panel);
-  backdrop-filter: blur(14px);
-  border-radius: var(--radius);
-  box-shadow: 0 0 22px #43eaff19;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 0 22px #43eaff12;
 }
+
 .sidebar {
   padding: 15px;
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 14px;
 }
-.brand { display: flex; gap: 10px; align-items: center; }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .logo {
-  width: 42px; height: 42px;
+  width: 43px;
+  height: 43px;
   border: 1px solid var(--cyan);
   border-radius: 50%;
-  display: grid; place-items: center;
+  display: grid;
+  place-items: center;
   color: var(--cyan);
+  font-size: 22px;
   box-shadow: 0 0 18px #43eaff55;
-  position: relative;
 }
-.logo:after {
-  content: ""; position: absolute; inset: -5px;
-  border: 1px solid var(--orange);
-  border-left-color: transparent;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spin 8s linear infinite;
+
+.brandname { font-size: 21px; letter-spacing: 4px; }
+
+.small, .sub, .section {
+  color: #78a9bb;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
-.brandname { font-size: 20px; letter-spacing: 4px; }
-.sub, .small {
-  color: #78a9bb; font-size: 10px;
-  letter-spacing: 1.5px; text-transform: uppercase;
-}
-.status { color: var(--cyan); font-size: 10px; letter-spacing: 1.5px; }
+
+.status { color: var(--cyan); font-size: 10px; }
+
 .led {
-  display: inline-block; width: 7px; height: 7px;
-  background: #5dffb2; border-radius: 50%;
-  box-shadow: 0 0 9px #5dffb2; margin-right: 7px;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #5dffb2;
+  border-radius: 50%;
+  box-shadow: 0 0 9px #5dffb2;
+  margin-right: 6px;
 }
+
 .btn {
   border: 1px solid var(--line);
   background: #09263bbd;
-  border-radius: 9px;
+  border-radius: 8px;
   padding: 10px 12px;
   text-align: left;
+  color: var(--text);
 }
+
 .btn:hover, .btn.active {
   border-color: var(--cyan);
   box-shadow: 0 0 13px #43eaff30;
 }
-.primary {
-  background: linear-gradient(110deg, #087da6, #144e98);
-  text-align: center;
+
+.primary, .send {
+  background: linear-gradient(110deg,#087da6,#144e98);
+  border-color: var(--cyan);
 }
-.section {
-  font-size: 10px; color: #78a9bb;
-  letter-spacing: 2px; text-transform: uppercase;
-  margin: 6px 0;
-}
+
+.primary { text-align: center; }
+
 .history {
-  display: grid; gap: 6px;
-  max-height: 30vh; overflow: auto;
+  display: grid;
+  gap: 6px;
+  max-height: 35vh;
+  overflow: auto;
 }
+
 .history button {
-  white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis; font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
 }
-.bottom { margin-top: auto; display: grid; gap: 8px; }
-.main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+.bottom {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 12px;
+}
+
 .topbar {
+  border-radius: 10px;
   padding: 12px 15px;
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
-.topbar-title { letter-spacing: 1.6px; text-transform: uppercase; font-size: 11px; }
+
+.topbar-title {
+  font-size: 11px;
+  letter-spacing: 1.7px;
+}
+
 .actions { display: flex; gap: 7px; align-items: center; }
+
 .chip {
-  border: 1px solid var(--line); border-radius: 20px;
-  padding: 5px 10px; color: var(--cyan); font-size: 10px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 5px 10px;
+  color: var(--cyan);
+  font-size: 10px;
 }
+
 .layout {
   display: grid;
-  grid-template-columns: minmax(0,1fr) 235px;
-  gap: 12px; flex: 1;
+  grid-template-columns: minmax(0,1fr) 230px;
+  gap: 12px;
+  flex: 1;
 }
-.work { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.hero {
-  min-height: 340px; flex: 1; position: relative;
-  display: grid; place-items: center; overflow: hidden;
-  background: radial-gradient(ellipse,#0a527033,transparent 65%),#020b16aa;
+
+.work {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
-.corewrap {
-  width: min(62vw,390px); aspect-ratio: 1;
-  position: relative; display: grid; place-items: center;
-}
-.ring {
-  position: absolute; border: 1px solid #43eaff75;
-  border-radius: 50%; inset: 4%;
-  box-shadow: inset 0 0 20px #43eaff0b;
-}
-.r1 { border-style: dashed; animation: spin 28s linear infinite; }
-.r2 {
-  inset: 13%; border-top-color: var(--orange);
-  border-bottom-color: transparent;
-  animation: spin 13s linear infinite reverse;
-}
-.r3 {
-  inset: 23%; border-width: 2px;
-  border-left-color: var(--orange);
-  animation: spin 8s linear infinite;
-}
-.r4 { inset: 33%; border-style: dotted; animation: spin 19s linear infinite reverse; }
-.r5 {
-  inset: 41%; border-right-color: transparent;
-  border-color: var(--orange);
-  animation: spin 5s linear infinite;
-}
-.core {
-  width: 30%; aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle at 35% 28%,
-    #d7ffff, #43eaff 10%, #168bff 38%, #06335f 70%, #020915);
-  box-shadow: 0 0 25px #43eaffaa, 0 0 70px #168bff88;
-  animation: pulse 3s ease-in-out infinite;
-}
-.cross {
-  position: absolute; width: 82%; height: 82%;
-  border: 1px solid #43eaff22;
-  border-radius: 50%; transform: rotate(45deg);
-}
-.corelabel {
-  position: absolute; bottom: 3%;
-  font-size: 10px; letter-spacing: 4px; color: var(--cyan);
-}
-.hudlabel {
-  position: absolute; font-size: 9px;
-  letter-spacing: 1px; color: #78a9bb;
-  text-transform: uppercase;
-}
-.hudlabel b {
-  display: block; color: var(--cyan);
-  font-size: 12px; font-weight: 500;
-}
-.l1 { left: 5%; top: 22%; }
-.l2 { right: 5%; top: 25%; text-align: right; }
-.l3 { left: 5%; bottom: 16%; }
-.l4 { right: 5%; bottom: 16%; text-align: right; }
+
+/* No giant hologram section. The interface itself has the holographic style. */
+
 .chat {
-  display: flex; flex-direction: column;
-  min-height: 330px; max-height: 48vh;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 85px);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  background:
+    linear-gradient(135deg,#03182ae8,#06273bd9 50%,#041321ee);
 }
+
+.chat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg, transparent 0 5px, #43eaff07 6px 7px
+  );
+}
+
 .panelhead {
-  padding: 11px 13px; border-bottom: 1px solid var(--line);
-  display: flex; justify-content: space-between;
-  font-size: 10px; letter-spacing: 1.5px;
+  position: relative;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--cyan);
+  font-size: 10px;
+  letter-spacing: 1.5px;
 }
+
 .messages {
-  padding: 13px; overflow: auto;
-  display: flex; flex-direction: column; gap: 10px;
+  position: relative;
+  flex: 1;
+  min-height: 300px;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+
 .msg {
-  max-width: 95%; align-self: flex-start;
-  padding: 10px 12px; background: #041e32dd;
+  max-width: 92%;
+  align-self: flex-start;
+  padding: 12px 14px;
   border: 1px solid var(--line);
-  border-radius: 11px; overflow-wrap: anywhere;
+  border-radius: 3px 12px 12px 12px;
+  background: #041e32e8;
+  overflow-wrap: anywhere;
+  box-shadow: 0 0 12px #43eaff09;
 }
+
 .msg.user {
   align-self: flex-end;
-  border-color: #ff9b4380; background: #39241188;
+  border-color: #ff9b4380;
+  border-radius: 12px 3px 12px 12px;
+  background: #39241188;
 }
-.who { font-size: 9px; letter-spacing: 1.5px; color: var(--cyan); margin-bottom: 4px; }
-.user .who { color: var(--orange); }
-.msg img { display: block; max-width: 100%; border-radius: 8px; margin-top: 8px; }
-.composer { display: flex; gap: 8px; padding: 11px; border-top: 1px solid var(--line); }
+
+.who {
+  color: var(--cyan);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  margin-bottom: 5px;
+}
+
+.msg.user .who { color: var(--orange); }
+
+.msg img {
+  display: block;
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.composer {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--line);
+  background: #03101de8;
+}
+
 textarea {
-  resize: vertical; min-height: 44px; max-height: 130px;
-  flex: 1; min-width: 0; background: #010b17;
-  color: var(--text); border: 1px solid var(--line);
-  border-radius: 9px; padding: 11px; outline: none;
+  resize: vertical;
+  min-height: 48px;
+  max-height: 160px;
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  background: #010b17;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: none;
 }
+
+textarea:focus, input:focus, select:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px #43eaff18;
+}
+
 .send {
-  border: 1px solid var(--cyan); border-radius: 9px;
-  background: linear-gradient(120deg,#087da6,#144e98);
-  padding: 0 16px;
+  border-radius: 8px;
+  padding: 0 18px;
 }
+
 .rail { display: flex; flex-direction: column; gap: 12px; }
-.hud { padding: 13px; }
+
+.hud {
+  padding: 13px;
+  border-radius: 10px;
+}
+
 .hud h3 {
-  font-size: 10px; letter-spacing: 2px;
-  color: #78a9bb; font-weight: 500; margin: 0 0 10px;
+  margin: 0 0 10px;
+  color: #78a9bb;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
 }
+
 .metric {
-  display: flex; justify-content: space-between; gap: 5px;
-  padding: 7px 0; border-bottom: 1px solid #43eaff15; font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 8px 0;
+  border-bottom: 1px solid #43eaff18;
+  font-size: 11px;
 }
+
 .metric span:last-child { color: var(--cyan); text-align: right; }
-.wave { height: 45px; display: flex; align-items: center; justify-content: center; gap: 3px; }
+
+.wave {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
 .wave i {
-  width: 3px; height: 12px; background: var(--cyan);
-  border-radius: 3px; box-shadow: 0 0 6px var(--cyan);
+  width: 3px;
+  height: 12px;
+  background: var(--cyan);
+  border-radius: 3px;
+  box-shadow: 0 0 6px var(--cyan);
   animation: wave .9s ease-in-out infinite alternate;
 }
+
 .wave i:nth-child(3n) { animation-delay: .2s; }
 .wave i:nth-child(2n) { animation-delay: .4s; }
 .wave.off i { animation-play-state: paused; height: 3px; }
-.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.quick .btn { text-align: center; font-size: 11px; padding: 8px 3px; }
+
+.quick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.quick .btn {
+  text-align: center;
+  font-size: 11px;
+  padding: 8px 3px;
+}
+
 .modal {
-  display: none; position: fixed; inset: 0; z-index: 5;
-  background: #010711ef; backdrop-filter: blur(12px);
-  padding: 16px; overflow: auto;
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  padding: 16px;
+  overflow: auto;
+  background: #010711ef;
+  backdrop-filter: blur(12px);
 }
+
 .modal.open { display: block; }
+
 .modalinner {
-  max-width: 800px; margin: 15px auto;
-  background: #061827; border: 1px solid var(--line);
-  border-radius: 16px; padding: 20px;
+  max-width: 800px;
+  margin: 15px auto;
+  padding: 20px;
+  border-radius: 14px;
 }
-.fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
-.field { display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: #78a9bb; }
+
+.modalhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #78a9bb;
+  font-size: 11px;
+}
+
 .field input, .field select {
-  width: 100%; padding: 9px; background: #03101d;
-  color: var(--text); border: 1px solid var(--line); border-radius: 8px;
+  width: 100%;
+  padding: 9px;
+  color: var(--text);
+  background: #03101d;
+  border: 1px solid var(--line);
+  border-radius: 8px;
 }
+
 .field input[type=color] { height: 36px; padding: 3px; }
 .field input[type=range] { padding: 0; }
-.modalhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.mobilemenu { display: none; }
+
 .hidden { display: none !important; }
+.mobilemenu { display: none; }
+
 .toast {
-  position: fixed; bottom: 16px; left: 50%;
-  transform: translateX(-50%); background: #08263a;
-  border: 1px solid var(--cyan); padding: 9px 15px;
-  border-radius: 30px; display: none; z-index: 10;
+  display: none;
+  position: fixed;
+  z-index: 10;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #08263a;
+  border: 1px solid var(--cyan);
+  padding: 10px 16px;
+  border-radius: 30px;
 }
+
 .toast.show { display: block; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse { 50% { transform: scale(1.07); filter: brightness(1.25); } }
-@keyframes wave { to { height: 38px; opacity: .6; } }
+
+@keyframes wave {
+  to { height: 35px; opacity: .6; }
+}
+
 @media(max-width:1050px) {
-  .app { grid-template-columns: 200px 1fr; }
+  .app { grid-template-columns: 200px minmax(0,1fr); }
   .layout { grid-template-columns: 1fr; }
   .rail { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
-  .chat { max-height: none; }
+  .chat { min-height: 65vh; }
 }
+
 @media(max-width:700px) {
   .app { display: block; padding: 8px; }
   .sidebar {
-    display: none; position: fixed; z-index: 4;
-    top: 8px; bottom: 8px; left: 8px;
-    width: min(290px,88vw); background: #041322f7;
+    display: none;
+    position: fixed;
+    z-index: 4;
+    top: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: min(290px,88vw);
+    background: #041322f7;
   }
   .sidebar.open { display: flex; }
   .mobilemenu { display: inline-block; }
@@ -304,90 +462,98 @@ textarea {
   .topbar-title { font-size: 9px; }
   .chip { display: none; }
   .layout { display: flex; flex-direction: column; }
-  .hero { min-height: 280px; }
-  .corewrap { width: min(78vw,320px); }
+  .chat { min-height: 65vh; }
   .rail { grid-template-columns: 1fr 1fr; }
   .rail .hud:last-child { grid-column: 1/-1; }
   .fields { grid-template-columns: 1fr 1fr; }
 }
+
 @media(max-width:430px) {
   .rail, .fields { grid-template-columns: 1fr; }
   .rail .hud:last-child { grid-column: auto; }
-  .hero { min-height: 250px; }
 }
 </style>
 </head>
+
 <body>
 <div class="app">
+
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="logo">N</div>
-      <div><div class="brandname" id="brandname">NOVA</div><div class="sub" id="subtitle">Holographic intelligence</div></div>
-    </div>
-    <div class="status"><span class="led"></span>SYSTEMS ONLINE</div>
-    <button class="btn primary" id="new">＋ New session</button>
-    <div><div class="section">Recent sessions</div><div class="history" id="history"></div></div>
-    <div><div class="section">Command presets</div>
-      <div style="display:grid;gap:6px">
-        <button class="btn" data-prompt="Give me a quick system status report.">System report</button>
-        <button class="btn" data-prompt="Explain a difficult topic like a helpful tutor.">Research mode</button>
-        <button class="btn" data-prompt="Brainstorm five creative ideas with me.">Creative mode</button>
+      <div>
+        <div class="brandname" id="brandname">NOVA</div>
+        <div class="sub" id="subtitle">Holographic intelligence</div>
       </div>
     </div>
-    <div class="bottom"><button class="btn" id="customize">⚙ Customize interface</button><div class="small">NOVA INTERFACE / LOCAL BUILD</div></div>
+
+    <div class="status"><span class="led"></span>SYSTEM ONLINE</div>
+
+    <button class="btn primary" id="new">+ New session</button>
+
+    <div class="section">Recent sessions</div>
+    <div class="history" id="history"></div>
+
+    <div class="bottom">
+      <button class="btn" id="customize">⚙ Customize interface</button>
+      <div class="small">NOVA AI / HOLOGRAPHIC UI</div>
+    </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <div style="display:flex;align-items:center;gap:9px">
-        <button class="btn mobilemenu" id="menu">☰</button>
-        <div><div class="topbar-title">Holographic command deck</div><div class="sub">Neural interface / conversational AI</div></div>
+      <button class="btn mobilemenu" id="menu">☰</button>
+      <div class="topbar-title">NOVA / HOLOGRAPHIC COMMAND</div>
+      <div class="actions">
+        <span class="chip" id="chatstatus">AWAITING INPUT</span>
+        <button class="btn" id="settingsBtn">⚙</button>
       </div>
-      <div class="actions"><span class="chip">GROQ LINK</span><button class="btn" id="voice">🎙 Voice</button><button class="btn" id="settingsBtn">⚙</button></div>
     </header>
 
     <div class="layout">
       <section class="work">
-        <section class="hero">
-          <div class="hudlabel l1">Core temperature<b>OPTIMAL</b></div>
-          <div class="hudlabel l2">Neural link<b id="neural">STANDBY</b></div>
-          <div class="hudlabel l3">Power output<b>98.7%</b></div>
-          <div class="hudlabel l4">Signal integrity<b>99.9%</b></div>
-          <div class="corewrap" id="corewrap">
-            <div class="cross"></div><div class="ring r1"></div><div class="ring r2"></div>
-            <div class="ring r3"></div><div class="ring r4"></div><div class="ring r5"></div>
-            <div class="core"></div><div class="corelabel" id="corelabel">NOVA / ONLINE</div>
+        <!-- The large hologram at the top has been removed. -->
+        <section class="chat">
+          <div class="panelhead">
+            <span>COMMUNICATION CHANNEL</span>
+            <span>◈ NOVA ONLINE</span>
           </div>
-        </section>
 
-        <section class="chat panel">
-          <div class="panelhead"><strong>SECURE CONVERSATION CHANNEL</strong><span id="chatstatus">AWAITING INPUT</span></div>
           <div class="messages" id="messages"></div>
+
           <form class="composer" id="composer">
-            <textarea id="prompt" placeholder="Ask Nova anything… (Enter to send)" rows="1"></textarea>
-            <button class="send" id="send" type="submit">SEND ↗</button>
+            <textarea id="prompt" placeholder="Ask Nova anything..." required></textarea>
+            <button class="send" id="send" type="submit">Send</button>
           </form>
         </section>
       </section>
 
       <aside class="rail">
-        <section class="hud" id="diagnostics"><h3>System diagnostics</h3>
-          <div class="metric"><span>AI connection</span><span id="connection">READY</span></div>
-          <div class="metric"><span>Image engine</span><span>FLUX</span></div>
-          <div class="metric"><span>Voice input</span><span id="voicestatus">CHECKING</span></div>
+        <section class="hud" id="diagnostics">
+          <h3>SYSTEM DIAGNOSTICS</h3>
+          <div class="metric"><span>Connection</span><span id="connectionStatus">READY</span></div>
+          <div class="metric"><span>AI Engine</span><span>GROQ</span></div>
           <div class="metric"><span>Interface</span><span>HOLOGRAPHIC</span></div>
+          <div class="metric"><span>Mode</span><span id="mode">STANDBY</span></div>
         </section>
-        <section class="hud"><h3>Voice visualizer</h3>
+
+        <section class="hud">
+          <h3>VOICE INTERFACE</h3>
           <div class="wave off" id="wave"></div>
-          <div class="small" id="voicehint" style="text-align:center">VOICE CHANNEL STANDBY</div>
-          <button class="btn" id="speak" style="width:100%;margin-top:10px;text-align:center">🔊 Read latest reply</button>
+          <div class="small" id="voicehint">VOICE CHANNEL STANDBY</div>
+          <div style="display:flex;gap:7px;margin-top:12px">
+            <button class="btn" id="voice">🎙 Voice</button>
+            <button class="btn" id="speak">▶ Speak</button>
+          </div>
         </section>
-        <section class="hud"><h3>Quick commands</h3>
+
+        <section class="hud">
+          <h3>QUICK COMMANDS</h3>
           <div class="quick">
-            <button class="btn" data-prompt="Make me an image of a futuristic holographic city.">Make image</button>
-            <button class="btn" data-prompt="Give me a concise status report on this session.">Status</button>
-            <button class="btn" data-prompt="Help me plan my day with a realistic checklist.">Plan day</button>
-            <button class="btn" data-prompt="Explain how this interface works.">Help</button>
+            <button class="btn" data-prompt="Explain something interesting to me.">Explain</button>
+            <button class="btn" data-prompt="Give me three creative ideas.">Ideas</button>
+            <button class="btn" data-prompt="Help me plan my day.">Plan</button>
+            <button class="btn" data-prompt="Make me an image of a futuristic city.">Make image</button>
           </div>
         </section>
       </aside>
@@ -398,332 +564,517 @@ textarea {
 <div class="modal" id="modal">
   <div class="modalinner">
     <div class="modalhead">
-      <div><div class="brandname">INTERFACE CALIBRATION</div><div class="sub">Customize your holographic environment</div></div>
-      <button class="btn" id="close">✕ Close</button>
+      <strong>INTERFACE CALIBRATION</strong>
+      <button class="btn" id="close">✕</button>
     </div>
+
     <div class="fields">
       <label class="field">Assistant name<input id="sName" value="NOVA"></label>
       <label class="field">Subtitle<input id="sSubtitle" value="Holographic intelligence"></label>
-      <label class="field">Cyan color<input id="sAccent" type="color" value="#43eaff"></label>
-      <label class="field">Orange highlight<input id="sOrange" type="color" value="#ff9b43"></label>
-      <label class="field">Background<input id="sBg" type="color" value="#030913"></label>
+      <label class="field">Accent color<input id="sAccent" type="color" value="#43eaff"></label>
+      <label class="field">Secondary color<input id="sOrange" type="color" value="#ff9b43"></label>
+      <label class="field">Background color<input id="sBg" type="color" value="#030913"></label>
       <label class="field">Text color<input id="sText" type="color" value="#d8faff"></label>
-      <label class="field">Panel opacity<input id="sOpacity" type="range" min="20" max="95" value="78"><span id="opval">78%</span></label>
-      <label class="field">Hologram size<input id="sSize" type="range" min="220" max="500" value="390"><span id="sizeval">390px</span></label>
-      <label class="field">Rotation speed<input id="sSpeed" type="range" min="3" max="30" value="13"><span id="speedval">13s</span></label>
-      <label class="field">Core label<input id="sCore" value="NOVA / ONLINE"></label>
+      <label class="field">Panel opacity<input id="sOpacity" type="range" min="20" max="100" value="85"><span id="opval">85%</span></label>
+      <label class="field">Interface glow<input id="sGlow" type="range" min="0" max="40" value="22"><span id="glowval">22px</span></label>
       <label class="field">Diagnostics<select id="sDiag"><option value="show">Show</option><option value="hide">Hide</option></select></label>
       <label class="field">Visualizer<select id="sVis"><option value="bars">Animated bars</option><option value="quiet">Minimal</option></select></label>
     </div>
+
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:15px">
       <button class="btn primary" id="saveSettings">Save calibration</button>
       <button class="btn" id="reset">Reset defaults</button>
       <button class="btn" id="export">Export settings</button>
       <label class="btn">Import settings<input id="import" type="file" accept="application/json" hidden></label>
     </div>
-    <p class="small">Voice features depend on browser support. Keep API keys in Cloudflare Worker secrets, never in this page.</p>
+
+    <p class="small">Keep your API keys in Cloudflare Worker secrets, never in this page.</p>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
   const WORKER_URL = "https://nova-brain.elijahmfiji.workers.dev";
   const $ = id => document.getElementById(id);
+
   const defaults = {
-    name:"NOVA", subtitle:"Holographic intelligence",
-    accent:"#43eaff", orange:"#ff9b43", bg:"#030913",
-    text:"#d8faff", opacity:78, size:390, speed:13,
-    core:"NOVA / ONLINE", diag:"show", vis:"bars"
+    name: "NOVA",
+    subtitle: "Holographic intelligence",
+    accent: "#43eaff",
+    orange: "#ff9b43",
+    bg: "#030913",
+    text: "#d8faff",
+    opacity: 85,
+    glow: 22,
+    diag: "show",
+    vis: "bars"
   };
 
-  let cfg={...defaults}, chats=[], current=null, busy=false;
-  let lastReply="", rec=null, listening=false;
+  let cfg = {...defaults};
+  let chats = [];
+  let current = null;
+  let busy = false;
+  let lastReply = "";
+  let rec = null;
+  let listening = false;
 
-  for(let i=0;i<25;i++){
-    const bar=document.createElement("i");
-    bar.style.animationDelay=(i%8)*.1+"s";
+  for (let i = 0; i < 25; i++) {
+    const bar = document.createElement("i");
+    bar.style.animationDelay = (i % 8) * .1 + "s";
     $("wave").appendChild(bar);
   }
 
-  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
   }[c]));
 
-  const toast=s=>{
-    const t=$("toast");t.textContent=s;t.classList.add("show");
-    setTimeout(()=>t.classList.remove("show"),2200);
-  };
-
-  function apply(){
-    const r=document.documentElement;
-    r.style.setProperty("--bg",cfg.bg);
-    r.style.setProperty("--cyan",cfg.accent);
-    r.style.setProperty("--orange",cfg.orange);
-    r.style.setProperty("--text",cfg.text);
-    r.style.setProperty("--line",cfg.accent+"55");
-    r.style.setProperty("--panel",`rgba(5,22,39,${cfg.opacity/100})`);
-    $("brandname").textContent=cfg.name;
-    $("subtitle").textContent=cfg.subtitle;
-    $("corelabel").textContent=cfg.core;
-    $("corewrap").style.width=`min(62vw,${cfg.size}px)`;
-    document.querySelector(".r2").style.animationDuration=cfg.speed+"s";
-    document.querySelector(".r1").style.animationDuration=cfg.speed*2+"s";
-    $("diagnostics").classList.toggle("hidden",cfg.diag==="hide");
-    $("wave").classList.toggle("hidden",cfg.vis==="quiet");
-    $("opval").textContent=cfg.opacity+"%";
-    $("sizeval").textContent=cfg.size+"px";
-    $("speedval").textContent=cfg.speed+"s";
+  function toast(message) {
+    const el = $("toast");
+    el.textContent = message;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2500);
   }
 
-  function save(){
+  function apply() {
+    const root = document.documentElement;
+
+    root.style.setProperty("--bg", cfg.bg);
+    root.style.setProperty("--cyan", cfg.accent);
+    root.style.setProperty("--orange", cfg.orange);
+    root.style.setProperty("--text", cfg.text);
+    root.style.setProperty("--line", cfg.accent + "55");
+    root.style.setProperty("--panel", `rgba(5,22,39,${cfg.opacity / 100})`);
+
+    document.querySelectorAll(".sidebar,.topbar,.hud,.chat").forEach(el => {
+      el.style.boxShadow = `0 0 ${cfg.glow}px ${cfg.accent}15`;
+    });
+
+    $("brandname").textContent = cfg.name;
+    $("subtitle").textContent = cfg.subtitle;
+    $("diagnostics").classList.toggle("hidden", cfg.diag === "hide");
+    $("wave").classList.toggle("hidden", cfg.vis === "quiet");
+
+    $("opval").textContent = cfg.opacity + "%";
+    $("glowval").textContent = cfg.glow + "px";
+
+    renderMessages();
+  }
+
+  function save() {
     try {
-      localStorage.setItem("nova-holo-config",JSON.stringify(cfg));
-      localStorage.setItem("nova-holo-chats",JSON.stringify(chats));
-    } catch(e) {
-      toast("Browser storage is full; older image chats may be too large.");
+      localStorage.setItem("nova-holo-config", JSON.stringify(cfg));
+      // Avoid saving generated image data, which can fill browser storage.
+      const safeChats = chats.map(c => ({
+        ...c,
+        messages: c.messages.map(m => ({
+          role: m.role,
+          content: m.content,
+          image: m.image ? "" : undefined
+        }))
+      }));
+      localStorage.setItem("nova-holo-chats", JSON.stringify(safeChats));
+    } catch (e) {
+      toast("Could not save browser data.");
     }
   }
 
-  function readForm(){
-    cfg={
-      name:$("sName").value.trim()||"NOVA",
-      subtitle:$("sSubtitle").value,
-      accent:$("sAccent").value,
-      orange:$("sOrange").value,
-      bg:$("sBg").value,
-      text:$("sText").value,
-      opacity:+$("sOpacity").value,
-      size:+$("sSize").value,
-      speed:+$("sSpeed").value,
-      core:$("sCore").value||"NOVA / ONLINE",
-      diag:$("sDiag").value,
-      vis:$("sVis").value
+  function readForm() {
+    cfg = {
+      name: $("sName").value.trim() || "NOVA",
+      subtitle: $("sSubtitle").value,
+      accent: $("sAccent").value,
+      orange: $("sOrange").value,
+      bg: $("sBg").value,
+      text: $("sText").value,
+      opacity: +$("sOpacity").value,
+      glow: +$("sGlow").value,
+      diag: $("sDiag").value,
+      vis: $("sVis").value
     };
     apply();
   }
 
-  function fillForm(){
-    const ids={
-      sName:"name",sSubtitle:"subtitle",sAccent:"accent",
-      sOrange:"orange",sBg:"bg",sText:"text",
-      sOpacity:"opacity",sSize:"size",sSpeed:"speed",
-      sCore:"core",sDiag:"diag",sVis:"vis"
+  function fillForm() {
+    const mapping = {
+      sName: "name",
+      sSubtitle: "subtitle",
+      sAccent: "accent",
+      sOrange: "orange",
+      sBg: "bg",
+      sText: "text",
+      sOpacity: "opacity",
+      sGlow: "glow",
+      sDiag: "diag",
+      sVis: "vis"
     };
-    Object.entries(ids).forEach(([id,key])=>$(id).value=cfg[key]);
+
+    Object.entries(mapping).forEach(([id, key]) => {
+      $(id).value = cfg[key];
+    });
+
     apply();
   }
 
-  function chat(){return chats.find(c=>c.id===current);}
-
-  function newChat(){
-    const c={
-      id:Date.now().toString(36)+Math.random().toString(36).slice(2),
-      title:"New session",messages:[]
-    };
-    chats.unshift(c);current=c.id;save();
-    renderHistory();renderMessages();$("prompt").focus();
+  function getChat() {
+    return chats.find(c => c.id === current);
   }
 
-  function renderHistory(){
-    $("history").innerHTML="";
-    chats.slice(0,20).forEach(c=>{
-      const b=document.createElement("button");
-      b.className="btn"+(c.id===current?" active":"");
-      b.textContent=c.title;
-      b.onclick=()=>{
-        current=c.id;renderHistory();renderMessages();
+  function newChat() {
+    const c = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+      title: "New session",
+      messages: []
+    };
+
+    chats.unshift(c);
+    current = c.id;
+    save();
+    renderHistory();
+    renderMessages();
+    $("prompt").focus();
+  }
+
+  function renderHistory() {
+    $("history").innerHTML = "";
+
+    chats.slice(0, 20).forEach(c => {
+      const button = document.createElement("button");
+      button.className = "btn" + (c.id === current ? " active" : "");
+      button.textContent = c.title;
+
+      button.onclick = () => {
+        current = c.id;
+        renderHistory();
+        renderMessages();
         $("sidebar").classList.remove("open");
       };
-      $("history").appendChild(b);
+
+      $("history").appendChild(button);
     });
   }
 
-  function fmt(s){
-    return esc(s)
-      .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
-      .replace(/`([^`]+)`/g,"<code>$1</code>")
-      .replace(/\n/g,"<br>");
+  function formatText(text) {
+    return esc(text)
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\n/g, "<br>");
   }
 
-  function renderMessages(){
-    const h=$("messages"),c=chat();
-    h.innerHTML="";
-    if(!c||!c.messages.length){
-      h.innerHTML=`<div class="msg"><div class="who">${esc(cfg.name)} / ONLINE</div>Systems online. I'm ready when you are. Ask a question, start voice input, or request an image.</div>`;
+  function renderMessages() {
+    const container = $("messages");
+    const c = getChat();
+
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (!c || !c.messages.length) {
+      container.innerHTML = `
+        <div class="msg">
+          <div class="who">${esc(cfg.name)} / ONLINE</div>
+          Systems online. I'm ready when you are.
+          Ask a question, use voice input, or request an image.
+        </div>`;
       return;
     }
-    c.messages.forEach(m=>{
-      const d=document.createElement("div");
-      d.className="msg "+(m.role==="user"?"user":"");
-      d.innerHTML=`<div class="who">${m.role==="user"?"YOU":esc(cfg.name)}</div>${fmt(m.content)}${m.image?`<img alt="Image generated by Nova" src="${m.image}">`:""}`;
-      h.appendChild(d);
+
+    c.messages.forEach(m => {
+      const div = document.createElement("div");
+      div.className = "msg " + (m.role === "user" ? "user" : "");
+
+      div.innerHTML = `
+        <div class="who">${m.role === "user" ? "YOU" : esc(cfg.name)}</div>
+        ${formatText(m.content)}
+      `;
+
+      if (m.image) {
+        const img = document.createElement("img");
+        img.alt = "Image generated by Nova";
+        img.src = m.image;
+        div.appendChild(img);
+      }
+
+      container.appendChild(div);
     });
-    h.scrollTop=h.scrollHeight;
+
+    container.scrollTop = container.scrollHeight;
   }
 
-  function add(role,content,image){
-    const c=chat();
-    c.messages.push({role,content,image});
-    if(role==="user"&&c.title==="New session"){
-      c.title=content.slice(0,30)+(content.length>30?"…":"");
+  function addMessage(role, content, image = "") {
+    const c = getChat();
+    if (!c) return;
+
+    c.messages.push({role, content, image});
+
+    if (role === "user" && c.title === "New session") {
+      c.title = content.slice(0, 30) + (content.length > 30 ? "…" : "");
     }
-    save();renderHistory();renderMessages();
+
+    save();
+    renderHistory();
+    renderMessages();
   }
 
-  function wantsImage(s){
-    return /\b(make|create|generate|draw|design)\b.{0,50}\b(image|picture|artwork|illustration|wallpaper)\b|\b(image|picture|artwork|illustration|wallpaper)\b.{0,35}\b(of|for)\b/i.test(s);
+  function wantsImage(text) {
+    return /\b(make|create|generate|draw|design)\b.{0,50}\b(image|picture|artwork|illustration|wallpaper)\b|\b(image|picture|artwork|illustration|wallpaper)\b.{0,35}\b(of|for)\b/i.test(text);
   }
 
-  async function send(s){
-    s=s.trim();if(!s||busy)return;
-    if(!chat())newChat();
-    add("user",s);$("prompt").value="";
-    busy=true;$("send").disabled=true;
-    $("chatstatus").textContent="PROCESSING";
-    $("neural").textContent="ACTIVE";
+  async function send(text) {
+    text = text.trim();
+    if (!text || busy) return;
+
+    if (!getChat()) newChat();
+
+    addMessage("user", text);
+    $("prompt").value = "";
+    busy = true;
+
+    $("send").disabled = true;
+    $("chatstatus").textContent = "PROCESSING";
+    $("connectionStatus").textContent = "WORKING";
+    $("mode").textContent = "ACTIVE";
     $("wave").classList.remove("off");
 
     try {
-      const isImg=wantsImage(s);
-      const endpoint=isImg?"/image":"/chat";
-      $("connection").textContent=isImg?"GENERATING":"THINKING";
+      const isImage = wantsImage(text);
+      const endpoint = isImage ? "/image" : "/chat";
 
-      const payload=isImg
-        ? {prompt:s}
-        : {messages:chat().messages.filter(m=>!m.image).slice(-30)
-            .map(m=>({role:m.role,content:m.content.slice(0,12000)}))};
+      const payload = isImage
+        ? {prompt: text}
+        : {
+            messages: getChat().messages
+              .filter(m => !m.image)
+              .slice(-30)
+              .map(m => ({
+                role: m.role,
+                content: m.content.slice(0, 12000)
+              }))
+          };
 
-      const res=await fetch(WORKER_URL+endpoint,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(payload)
+      const response = await fetch(WORKER_URL + endpoint, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
       });
-      const data=await res.json();
-      if(!res.ok)throw Error(data.error||"Request failed");
 
-      if(isImg){
-        const src=data.image||data.url;
-        if(!src)throw Error("No image returned by the Worker.");
-        add("assistant","Image generated.",src);
-        lastReply="I've generated your image.";
-      } else {
-        const reply=data.reply||data.message||data.response;
-        if(!reply)throw Error("No reply returned.");
-        add("assistant",reply);
-        lastReply=reply;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Request failed");
       }
-      $("connection").textContent="READY";
-    } catch(e) {
-      add("assistant","Connection error: "+e.message+
-        "\n\nCheck that your Cloudflare Worker is online and its /chat and /image routes are configured.");
-      $("connection").textContent="CHECK WORKER";
+
+      if (isImage) {
+        const image = data.image || data.url;
+
+        if (!image) throw new Error("No image was returned by the Worker.");
+
+        addMessage("assistant", "Image generated.", image);
+        lastReply = "I've generated your image.";
+      } else {
+        const reply = data.reply || data.message || data.response;
+
+        if (!reply) throw new Error("The Worker returned an empty reply.");
+
+        addMessage("assistant", reply);
+        lastReply = reply;
+      }
+
+      $("connectionStatus").textContent = "CONNECTED";
+    } catch (error) {
+      addMessage(
+        "assistant",
+        "Connection error: " + error.message +
+        "\n\nCheck your Cloudflare Worker and its /chat and /image routes."
+      );
+      $("connectionStatus").textContent = "ERROR";
     } finally {
-      busy=false;$("send").disabled=false;
-      $("chatstatus").textContent="AWAITING INPUT";
-      $("neural").textContent="STANDBY";
-      $("wave").classList.add("off");$("prompt").focus();
+      busy = false;
+      $("send").disabled = false;
+      $("chatstatus").textContent = "AWAITING INPUT";
+      $("mode").textContent = "STANDBY";
+      $("wave").classList.add("off");
+      $("prompt").focus();
     }
   }
 
-  function openSettings(){fillForm();$("modal").classList.add("open");}
+  function openSettings() {
+    fillForm();
+    $("modal").classList.add("open");
+  }
 
-  function voice(){
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR)return toast("Voice input is not supported in this browser.");
-    if(listening){rec.stop();return;}
-    rec=new SR();rec.lang="en-US";
-    rec.onstart=()=>{
-      listening=true;$("voice").textContent="● Listening";
-      $("wave").classList.remove("off");$("voicehint").textContent="LISTENING";
+  function voice() {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast("Voice input is not supported in this browser.");
+      return;
+    }
+
+    if (listening) {
+      rec.stop();
+      return;
+    }
+
+    rec = new SpeechRecognition();
+    rec.lang = "en-US";
+
+    rec.onstart = () => {
+      listening = true;
+      $("voice").textContent = "● Listening";
+      $("wave").classList.remove("off");
+      $("voicehint").textContent = "LISTENING";
     };
-    rec.onresult=e=>{
-      $("prompt").value=e.results[0][0].transcript;
-      toast("Voice captured — press Send when ready.");
+
+    rec.onresult = event => {
+      $("prompt").value = event.results[0][0].transcript;
+      toast("Voice captured. Press Send when ready.");
     };
-    rec.onerror=e=>toast("Voice input: "+e.error);
-    rec.onend=()=>{
-      listening=false;$("voice").textContent="🎙 Voice";
-      $("wave").classList.add("off");$("voicehint").textContent="VOICE CHANNEL STANDBY";
+
+    rec.onerror = event => toast("Voice input: " + event.error);
+
+    rec.onend = () => {
+      listening = false;
+      $("voice").textContent = "🎙 Voice";
+      $("wave").classList.add("off");
+      $("voicehint").textContent = "VOICE CHANNEL STANDBY";
     };
+
     rec.start();
   }
 
-  function speak(){
-    const text=lastReply||chat()?.messages.slice().reverse()
-      .find(m=>m.role==="assistant"&&!m.image)?.content;
-    if(!text)return toast("No reply to read yet.");
-    if(!("speechSynthesis" in window))return toast("Speech output not supported.");
+  function speak() {
+    const previous = getChat()?.messages.slice().reverse()
+      .find(m => m.role === "assistant" && !m.image)?.content;
+
+    const text = lastReply || previous;
+
+    if (!text) return toast("No reply to read yet.");
+
+    if (!("speechSynthesis" in window)) {
+      return toast("Speech output is not supported.");
+    }
+
     speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.onstart=()=>{
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.onstart = () => {
       $("wave").classList.remove("off");
-      $("voicehint").textContent="SPEAKING";
+      $("voicehint").textContent = "SPEAKING";
     };
-    u.onend=()=>{
+
+    utterance.onend = () => {
       $("wave").classList.add("off");
-      $("voicehint").textContent="VOICE CHANNEL STANDBY";
+      $("voicehint").textContent = "VOICE CHANNEL STANDBY";
     };
-    speechSynthesis.speak(u);
+
+    speechSynthesis.speak(utterance);
   }
 
-  $("composer").onsubmit=e=>{
-    e.preventDefault();send($("prompt").value);
-  };
-  $("prompt").onkeydown=e=>{
-    if(e.key==="Enter"&&!e.shiftKey){
-      e.preventDefault();$("composer").requestSubmit();
+  $("composer").addEventListener("submit", event => {
+    event.preventDefault();
+    send($("prompt").value);
+  });
+
+  $("prompt").addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      $("composer").requestSubmit();
     }
-  };
+  });
 
-  $("new").onclick=newChat;
-  $("customize").onclick=openSettings;
-  $("settingsBtn").onclick=openSettings;
-  $("close").onclick=()=>$("modal").classList.remove("open");
-  $("menu").onclick=()=>$("sidebar").classList.toggle("open");
-  $("voice").onclick=voice;
-  $("speak").onclick=speak;
+  $("new").onclick = newChat;
+  $("customize").onclick = openSettings;
+  $("settingsBtn").onclick = openSettings;
+  $("close").onclick = () => $("modal").classList.remove("open");
+  $("menu").onclick = () => $("sidebar").classList.toggle("open");
+  $("voice").onclick = voice;
+  $("speak").onclick = speak;
 
-  $("saveSettings").onclick=()=>{
-    readForm();save();$("modal").classList.remove("open");
+  $("saveSettings").onclick = () => {
+    readForm();
+    save();
+    $("modal").classList.remove("open");
     toast("Calibration saved.");
   };
-  $("reset").onclick=()=>{
-    cfg={...defaults};fillForm();save();toast("Defaults restored.");
+
+  $("reset").onclick = () => {
+    cfg = {...defaults};
+    fillForm();
+    save();
+    toast("Defaults restored.");
   };
-  $("export").onclick=()=>{
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(new Blob([JSON.stringify(cfg,null,2)],{type:"application/json"}));
-    a.download="nova-hologram-settings.json";a.click();
-    URL.revokeObjectURL(a.href);
+
+  $("export").onclick = () => {
+    const file = new Blob([JSON.stringify(cfg, null, 2)], {
+      type: "application/json"
+    });
+
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "nova-settings.json";
+    a.click();
+    URL.revokeObjectURL(url);
   };
-  $("import").onchange=async e=>{
+
+  $("import").onchange = async event => {
     try {
-      cfg={...defaults,...JSON.parse(await e.target.files[0].text())};
-      fillForm();save();toast("Settings imported.");
-    } catch {toast("Could not import settings.");}
-    e.target.value="";
+      const file = event.target.files[0];
+      if (!file) return;
+
+      cfg = {...defaults, ...JSON.parse(await file.text())};
+      fillForm();
+      save();
+      toast("Settings imported.");
+    } catch {
+      toast("Could not import settings.");
+    }
+
+    event.target.value = "";
   };
 
-  ["sName","sSubtitle","sAccent","sOrange","sBg","sText","sOpacity",
-   "sSize","sSpeed","sCore","sDiag","sVis"]
-    .forEach(id=>$(id).addEventListener("input",readForm));
+  [
+    "sName", "sSubtitle", "sAccent", "sOrange",
+    "sBg", "sText", "sOpacity", "sGlow", "sDiag", "sVis"
+  ].forEach(id => $(id).addEventListener("input", readForm));
 
-  document.querySelectorAll("[data-prompt]")
-    .forEach(b=>b.onclick=()=>send(b.dataset.prompt));
+  document.querySelectorAll("[data-prompt]").forEach(button => {
+    button.onclick = () => send(button.dataset.prompt);
+  });
 
-  $("voicestatus").textContent=
-    (window.SpeechRecognition||window.webkitSpeechRecognition)?"AVAILABLE":"LIMITED";
+  $("voicestatus")?.textContent =
+    (window.SpeechRecognition || window.webkitSpeechRecognition)
+      ? "AVAILABLE"
+      : "LIMITED";
 
   try {
-    cfg={...defaults,...JSON.parse(localStorage.getItem("nova-holo-config")||"{}")};
-    chats=JSON.parse(localStorage.getItem("nova-holo-chats")||"[]");
-  } catch {cfg={...defaults};chats=[];}
+    cfg = {
+      ...defaults,
+      ...JSON.parse(localStorage.getItem("nova-holo-config") || "{}")
+    };
+
+    chats = JSON.parse(localStorage.getItem("nova-holo-chats") || "[]");
+  } catch {
+    cfg = {...defaults};
+    chats = [];
+  }
 
   fillForm();
-  if(!chats.length)newChat();
-  else {current=chats[0].id;renderHistory();renderMessages();}
-  save();
+
+  if (!chats.length) {
+    newChat();
+  } else {
+    current = chats[0].id;
+    renderHistory();
+    renderMessages();
+  }
 })();
 </script>
 </body>

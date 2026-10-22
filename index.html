@@ -133,7 +133,7 @@ body.noanimations *,body.noanimations *::before,body.noanimations *::after{anima
   </div>
   <button class="sidebtn" id="newChat"><span class="sym">＋</span>New chat</button>
   <button class="sidebtn" id="imageModeBtn"><span class="sym">▧</span>Create an image</button>
-  <button class="sidebtn" id="voiceModeBtn"><span class="sym">♩</span>Start voice conversation</button>
+  <button class="sidebtn" id="voiceModeBtn"><span class="sym">♩</span>Voice conversation</button>
   <div class="section">Your chats</div>
   <div class="history" id="history"></div>
   <div class="profile">
@@ -154,8 +154,8 @@ body.noanimations *,body.noanimations *::before,body.noanimations *::after{anima
     <button class="iconbtn" id="topNew" title="New chat">＋</button>
    </div>
   </header>
-  <div class="toast" id="toast"></div>
 
+  <div class="toast" id="toast"></div>
   <section class="scroll" id="scroll">
    <div class="inner">
     <div class="welcome" id="welcome">
@@ -189,7 +189,7 @@ body.noanimations *,body.noanimations *::before,body.noanimations *::after{anima
       <button class="sendbtn" id="sendBtn" title="Send">↑</button>
      </div>
     </div>
-    <div class="disclaimer">Nova can make mistakes. Check important information.</div>
+    <div class="disclaimer" id="disclaimer">Nova can make mistakes. Check important information.</div>
    </div>
   </footer>
  </main>
@@ -198,59 +198,69 @@ body.noanimations *,body.noanimations *::before,body.noanimations *::after{anima
 <div class="overlay" id="settingsOverlay">
  <section class="settings">
   <div class="settingshead"><h2>Customize Nova</h2><button class="iconbtn" id="closeSettings">✕</button></div>
+
   <div class="setting"><div><label for="accent">Accent color</label><small>Changes icons, buttons and glow</small></div><input id="accent" type="color" value="#2589ff"></div>
-  <div class="setting"><div><label for="theme">Appearance</label><small>Dark or light mode</small></div><select id="theme"><option value="dark">Dark</option><option value="light">Light</option></select></div>
+  <div class="setting"><div><label for="theme">Appearance</label><small>Choose dark or light mode</small></div><select id="theme"><option value="dark">Dark</option><option value="light">Light</option></select></div>
   <div class="setting"><div><label for="fontSize">Text size</label><small id="fontLabel">15 px</small></div><input id="fontSize" type="range" min="13" max="20" value="15"></div>
   <div class="setting"><div><label for="radius">Composer roundness</label><small id="radiusLabel">20 px</small></div><input id="radius" type="range" min="8" max="32" value="20"></div>
   <div class="setting"><div><label for="sidebarWidth">Sidebar width</label><small id="sidebarLabel">260 px</small></div><input id="sidebarWidth" type="range" min="220" max="340" value="260"></div>
   <div class="setting"><label for="animations">Enable animations</label><input id="animations" type="checkbox" checked></div>
-  <div class="setting"><label for="autoSpeak">Automatically speak Nova's replies</label><input id="autoSpeak" type="checkbox" checked></div>
+  <div class="setting"><label for="autoSpeak">Automatically speak Nova's replies</label><input id="autoSpeak" type="checkbox"></div>
   <div class="setting"><label for="autoListen">Continue listening after a voice reply</label><input id="autoListen" type="checkbox" checked></div>
-  <div class="setting"><label for="voiceSelect">Nova's voice</label><select id="voiceSelect"><option value="">Automatic English voice</option></select></div>
+  <div class="setting"><label for="voiceSelect">Reply voice</label><select id="voiceSelect"><option value="">Browser default</option></select></div>
   <div class="setting"><label for="voiceRate">Speaking speed</label><input id="voiceRate" type="range" min="0.7" max="1.4" step="0.1" value="1"></div>
-  <div class="setting"><label for="sendOnPause">Auto-send when you stop speaking</label><input id="sendOnPause" type="checkbox" checked></div>
+  <div class="setting"><label for="sendOnPause">Auto-send after you stop speaking</label><input id="sendOnPause" type="checkbox" checked></div>
   <div class="setting"><label for="enterSends">Enter sends messages</label><input id="enterSends" type="checkbox" checked></div>
+
   <div class="settingbuttons">
    <button class="actionbtn primary" id="saveSettings">Apply settings</button>
    <button class="actionbtn" id="resetSettings">Reset appearance</button>
    <button class="actionbtn" id="exportChats">Export chats</button>
   </div>
-  <p class="smallmuted">Voice recognition and speech depend on your browser and available device voices.</p>
+  <p class="smallmuted">Voice recognition requires microphone permission and a supported browser. Settings are saved on this device.</p>
  </section>
 </div>
 
 <script>
-const WORKER_URL="https://nova-brain.elijahmfiji.workers.dev";
-const $=id=>document.getElementById(id);
-const promptBox=$("prompt");
-const messagesBox=$("messages");
-const historyBox=$("history");
+const WORKER_URL = "https://nova-brain.elijahmfiji.workers.dev";
+const $ = id => document.getElementById(id);
+const promptBox = $("prompt");
+const messagesBox = $("messages");
+const historyBox = $("history");
 
-let chats=[];
-let activeChatId=null;
-let busy=false;
-let imageMode=false;
-let attachedImage=null;
-let voiceMode=false;
-let recognition=null;
-let recognitionRunning=false;
-let recognitionRestartTimer=null;
-let voiceSendTimer=null;
-let lastFinalTranscript="";
-let voiceGeneration=0;
+let chats = [];
+let activeChatId = null;
+let busy = false;
+let imageMode = false;
+let attachedImage = null;
+let voiceMode = false;
+let recognition = null;
+let recognitionRunning = false;
+let recognitionRestartTimer = null;
+let lastFinalTranscript = "";
+let voiceSendTimer = null;
+let voiceGeneration = 0;
 
-const defaults={
- accent:"#2589ff",theme:"dark",fontSize:15,radius:20,sidebarWidth:260,
- animations:true,autoSpeak:true,autoListen:true,voiceRate:1,
- sendOnPause:true,enterSends:true
+const defaults = {
+ accent:"#2589ff", theme:"dark", fontSize:15, radius:20, sidebarWidth:260,
+ animations:true, autoSpeak:false, autoListen:true, voiceRate:1,
+ sendOnPause:true, enterSends:true
 };
-let settings={...defaults};
+let settings = {...defaults};
+
+function loadSettings(){
+ try {
+  const saved = JSON.parse(localStorage.getItem("nova-settings") || "{}");
+  settings = {...defaults,...saved};
+ } catch { settings = {...defaults}; }
+ applySettings(false);
+}
 
 function applySettings(save=true){
  document.documentElement.style.setProperty("--accent",settings.accent);
  document.documentElement.style.setProperty("--font-size",settings.fontSize+"px");
  document.documentElement.style.setProperty("--radius",settings.radius+"px");
- $("sidebar").style.width=settings.sidebarWidth+"px";
+ $("sidebar").style.width = settings.sidebarWidth+"px";
  document.body.classList.toggle("light",settings.theme==="light");
  document.body.classList.toggle("noanimations",!settings.animations);
  $("accent").value=settings.accent;
@@ -267,12 +277,12 @@ function applySettings(save=true){
  $("voiceRate").value=settings.voiceRate;
  $("sendOnPause").checked=settings.sendOnPause;
  $("enterSends").checked=settings.enterSends;
- $("voiceToggle").classList.toggle("on",settings.autoSpeak);
- if(save){
-  try{localStorage.setItem("nova-settings",JSON.stringify(settings))}
-  catch{showToast("Settings could not be saved in this browser.")}
+ if(save) {
+  try { localStorage.setItem("nova-settings",JSON.stringify(settings)); }
+  catch { showToast("Settings could not be saved in this browser."); }
  }
 }
+
 function readSettingsForm(){
  settings.accent=$("accent").value;
  settings.theme=$("theme").value;
@@ -287,16 +297,13 @@ function readSettingsForm(){
  settings.enterSends=$("enterSends").checked;
  applySettings();
 }
-function loadSettings(){
- try{settings={...defaults,...JSON.parse(localStorage.getItem("nova-settings")||"{}")}}
- catch{settings={...defaults}}
- applySettings(false);
-}
+
 function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function activeChat(){return chats.find(c=>c.id===activeChatId)}
 function newChat(){
  const chat={id:id(),title:"New chat",messages:[]};
- chats.unshift(chat);activeChatId=chat.id;renderHistory();renderMessages();
+ chats.unshift(chat);activeChatId=chat.id;
+ renderHistory();renderMessages();
  if(innerWidth<=700)$("sidebar").classList.remove("open");
  promptBox.focus();
 }
@@ -324,7 +331,7 @@ function renderHistory(){
   del.className="delchat";del.textContent="×";del.title="Delete chat";
   del.onclick=e=>{
    e.stopPropagation();chats=chats.filter(c=>c.id!==chat.id);
-   if(activeChatId===chat.id){activeChatId=chats[0]?.id||null;if(!activeChatId)newChat()}
+   if(activeChatId===chat.id){activeChatId=null;if(chats.length)activeChatId=chats[0].id;else newChat()}
    renderHistory();renderMessages();
   };
   row.append(title,del);historyBox.append(row);
@@ -342,16 +349,14 @@ function renderMessages(){
   av.textContent=msg.role==="user"?"U":"N";
   const content=document.createElement("div");content.className="msgcontent";
   if(msg.image){
-   const img=document.createElement("img");img.src=msg.image;img.alt="Image";
-   content.append(img);
+   const img=document.createElement("img");img.src=msg.image;img.alt="Image";content.append(img);
    if(msg.content){const p=document.createElement("p");p.textContent=msg.content;content.prepend(p)}
-  }else content.innerHTML=formatText(msg.content||"");
+  } else content.innerHTML=formatText(msg.content||"");
   const tools=document.createElement("div");tools.className="msgtools";
   if(msg.role==="assistant"&&msg.content){
    const copy=document.createElement("button");copy.textContent="▢ Copy";
    copy.onclick=()=>navigator.clipboard?.writeText(msg.content).then(()=>showToast("Copied")).catch(()=>showToast("Copy unavailable"));
-   const speak=document.createElement("button");speak.textContent="🔊 Speak";
-   speak.onclick=()=>speakText(msg.content,false,voiceGeneration);
+   const speak=document.createElement("button");speak.textContent="🔊 Read aloud";speak.onclick=()=>speakText(msg.content,false);
    tools.append(copy,speak);
   }
   content.append(tools);row.append(av,content);messagesBox.append(row);
@@ -363,10 +368,16 @@ function showToast(text){
  const t=$("toast");t.textContent=text;t.style.display="block";
  clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.style.display="none",2800);
 }
-function setBusy(v){
- busy=v;$("sendBtn").disabled=v;promptBox.disabled=v;
- $("statusText").textContent=v?"Thinking...":"Online";
- $("statusDot").style.background=v?"#e5a33d":"var(--accent)";
+function addMessage(role,content,extra={}){
+ const chat=activeChat();if(!chat)return;
+ chat.messages.push({role,content,...extra});
+ if(role==="user"&&chat.title==="New chat")chat.title=content.slice(0,32)+(content.length>32?"…":"");
+ renderHistory();renderMessages();
+}
+function setBusy(value){
+ busy=value;$("sendBtn").disabled=value;promptBox.disabled=value;
+ $("statusText").textContent=value?"Thinking...":"Online";
+ $("statusDot").style.background=value?"#e5a33d":"var(--accent)";
 }
 function resizeInput(){promptBox.style.height="auto";promptBox.style.height=Math.min(promptBox.scrollHeight,180)+"px"}
 
@@ -375,47 +386,34 @@ async function sendMessage(forcedText){
  const text=(forcedText??promptBox.value).trim();
  if(!text&&!attachedImage)return;
  if(!activeChat())newChat();
-
  const attachment=attachedImage;
  attachedImage=null;$("fileChip").style.display="none";
  promptBox.value="";resizeInput();
-
- const fromVoice=voiceMode;
+ const wasVoice=voiceMode;
  const generation=voiceGeneration;
  setBusy(true);
  addMessage("user",text||"What is in this image?",attachment?{image:attachment}:{});
  const chat=activeChat();
-
  try{
   const wantsImage=imageMode||/\b(make|create|generate|draw)\s+(me\s+)?(an?\s+)?image\b/i.test(text);
   imageMode=false;$("imageBtn").classList.remove("on");
-
-  let replyText="";
   if(wantsImage){
-   const response=await fetch(WORKER_URL+"/image",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:text||"A creative digital artwork"})
-   });
+   const response=await fetch(WORKER_URL+"/image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:text||"A creative digital artwork"})});
    const data=await response.json();
    if(!response.ok)throw Error(data.error||"Image generation failed");
    chat.messages.push({role:"assistant",content:"Here's your image.",image:data.image});
-   replyText="Here's your image.";
-  }else{
-   messagesBox.insertAdjacentHTML("beforeend",'<div class="message" id="typing"><div class="msgavatar bot">N</div><div class="msgcontent"><div class="typing">● ● ●</div></div></div>');
+  } else {
+   $("messages").insertAdjacentHTML("beforeend",'<div class="message" id="typing"><div class="msgavatar bot">N</div><div class="msgcontent"><div class="typing">● ● ●</div></div></div>');
    scrollBottom();
    const apiMessages=[
-    {role:"system",content:"You are Nova, a helpful, friendly AI assistant. Be accurate, clear, and conversational. Use Markdown when useful. When asked for code, provide complete copy-paste-ready code when practical. Never claim to have performed actions you did not do."},
+    {role:"system",content:"You are Nova, a helpful, friendly AI assistant. Be accurate, clear and conversational. Use Markdown when useful. When asked for code, provide complete copy-paste-ready code when practical. Never claim to have done actions you did not do."},
     ...chat.messages.filter(m=>!m.image&&m.content).slice(-30).map(m=>({role:m.role,content:m.content}))
    ];
-   const response=await fetch(WORKER_URL+"/chat",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({messages:apiMessages})
-   });
+   const response=await fetch(WORKER_URL+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:apiMessages})});
    const data=await response.json();
    if(!response.ok)throw Error(data.error||"Nova could not respond");
    if(!data.reply)throw Error("Empty reply from server");
-   replyText=data.reply;
-   chat.messages.push({role:"assistant",content:replyText});
+   chat.messages.push({role:"assistant",content:data.reply});
   }
  }catch(err){
   chat.messages.push({role:"assistant",content:"I couldn't complete that request: "+err.message+"\n\nCheck your Cloudflare Worker and its `/chat` or `/image` endpoint."});
@@ -423,154 +421,105 @@ async function sendMessage(forcedText){
   $("typing")?.remove();
   setBusy(false);renderHistory();renderMessages();
   const last=chat.messages[chat.messages.length-1];
-  if(last?.role==="assistant"&&settings.autoSpeak&&last.content){
-   speakText(last.content,fromVoice&&settings.autoListen,generation);
-  }else if(fromVoice&&settings.autoListen&&voiceMode&&generation===voiceGeneration){
-   startListening();
-  }
+  if(last?.role==="assistant"&&settings.autoSpeak&&last.content)speakText(last.content,wasVoice&&settings.autoListen,generation);
+  else if(wasVoice&&settings.autoListen&&voiceMode&&generation===voiceGeneration)startListening();
   promptBox.focus();
  }
 }
 
-/* Voice output: uses the best available voice installed on the device. */
 function speakText(text,continueListening=false,generation=voiceGeneration){
- if(!("speechSynthesis" in window)){
-  showToast("Speech output is not supported in this browser.");return;
- }
+ if(!("speechSynthesis" in window)){showToast("Speech output isn't supported in this browser.");return}
  speechSynthesis.cancel();
-
- const cleanText=String(text)
-  .replace(/```[\s\S]*?```/g," Code block omitted. ")
-  .replace(/`([^`]+)`/g,"$1")
-  .replace(/https?:\/\/\S+/g," link ")
-  .replace(/[*#_~]/g,"")
-  .replace(/\s+/g," ").trim();
- if(!cleanText)return;
-
- const utterance=new SpeechSynthesisUtterance(cleanText);
- const voices=speechSynthesis.getVoices();
+ const utterance=new SpeechSynthesisUtterance(text);
  const selected=$("voiceSelect").value;
- let voice=voices.find(v=>v.name===selected);
- if(!voice){
-  voice=voices.find(v=>/natural|neural/i.test(v.name)&&/^en/i.test(v.lang))
-    ||voices.find(v=>/Google.*English/i.test(v.name))
-    ||voices.find(v=>/^en-US/i.test(v.lang))
-    ||voices.find(v=>/^en/i.test(v.lang));
- }
- if(voice){utterance.voice=voice;utterance.lang=voice.lang}
- else utterance.lang="en-US";
-
- utterance.rate=Number(settings.voiceRate||1);
- utterance.pitch=0.92;
- utterance.volume=1;
-
- utterance.onstart=()=>{
-  $("statusText").textContent="Nova is speaking";
-  $("statusDot").style.background="var(--accent)";
- };
+ const voice=speechSynthesis.getVoices().find(v=>v.name===selected);
+ if(voice)utterance.voice=voice;
+ utterance.rate=settings.voiceRate;
  utterance.onend=()=>{
-  if(continueListening&&voiceMode&&settings.autoListen&&generation===voiceGeneration){
-   startListening();
-  }else if(!voiceMode){
-   $("statusText").textContent="Online";
-  }
+  if(continueListening&&voiceMode&&settings.autoListen&&generation===voiceGeneration)startListening();
  };
- utterance.onerror=event=>{
-  console.warn("Speech error:",event.error);
+ utterance.onerror=()=>{
   if(continueListening&&voiceMode&&settings.autoListen&&generation===voiceGeneration)startListening();
  };
  speechSynthesis.speak(utterance);
 }
-
 function populateVoices(){
- const select=$("voiceSelect");
- const previous=select.value;
- select.innerHTML='<option value="">Automatic English voice</option>';
+ const select=$("voiceSelect");const previous=select.value;
+ select.innerHTML='<option value="">Browser default</option>';
  if(!("speechSynthesis" in window))return;
  speechSynthesis.getVoices().forEach(v=>{
-  const option=document.createElement("option");
-  option.value=v.name;option.textContent=v.name+" ("+v.lang+")";
-  select.append(option);
+  const opt=document.createElement("option");opt.value=v.name;opt.textContent=v.name+" ("+v.lang+")";select.append(opt);
  });
  if([...select.options].some(o=>o.value===previous))select.value=previous;
 }
-if("speechSynthesis" in window){
- populateVoices();
- speechSynthesis.onvoiceschanged=populateVoices;
-}
+if("speechSynthesis" in window){populateVoices();speechSynthesis.onvoiceschanged=populateVoices}
 
 function setupRecognition(){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){showToast("Voice recognition isn't supported. Try Chrome and allow microphone access.");return false}
- if(recognition)return true;
-
- recognition=new SR();
- recognition.lang="en-US";
- recognition.interimResults=true;
- recognition.continuous=true;
-
- recognition.onstart=()=>{
-  recognitionRunning=true;
-  $("micBtn").classList.add("on");
-  $("statusText").textContent="Listening";
-  $("statusDot").style.background="var(--accent)";
- };
- recognition.onresult=event=>{
-  let finalText="",interimText="";
-  for(let i=event.resultIndex;i<event.results.length;i++){
-   const transcript=event.results[i][0].transcript;
-   if(event.results[i].isFinal)finalText+=transcript+" ";
-   else interimText+=transcript;
-  }
-  if(finalText.trim()){
-   lastFinalTranscript=(lastFinalTranscript+" "+finalText).trim();
-   promptBox.value=lastFinalTranscript;
-   resizeInput();
-   clearTimeout(voiceSendTimer);
-   if(settings.sendOnPause){
-    voiceSendTimer=setTimeout(()=>{
-     if(voiceMode&&!busy&&lastFinalTranscript.trim()){
-      const spoken=lastFinalTranscript.trim();
-      lastFinalTranscript="";
-      sendMessage(spoken);
-     }
-    },1200);
+ if(!SR){showToast("Voice recognition isn't supported here. Try Chrome and allow microphone access.");return false}
+ if(!recognition){
+  recognition=new SR();
+  recognition.lang="en-US";
+  recognition.interimResults=true;
+  recognition.continuous=true;
+  recognition.onstart=()=>{
+   recognitionRunning=true;
+   $("micBtn").classList.add("on");
+   $("statusText").textContent="Listening";
+   $("statusDot").style.background="var(--accent)";
+  };
+  recognition.onresult=event=>{
+   let finalText="";
+   let interimText="";
+   for(let i=event.resultIndex;i<event.results.length;i++){
+    const transcript=event.results[i][0].transcript;
+    if(event.results[i].isFinal)finalText+=transcript+" ";
+    else interimText+=transcript;
    }
-  }else if(interimText&&!lastFinalTranscript){
-   promptBox.value=interimText;resizeInput();
-  }
- };
- recognition.onerror=event=>{
-  if(event.error==="not-allowed"||event.error==="service-not-allowed"){
-   voiceMode=false;voiceGeneration++;
-   $("micBtn").classList.remove("on");
-   $("voiceModeBtn").textContent="♩ Start voice conversation";
-   showToast("Microphone permission denied. Allow microphone access in browser settings.");
-  }else if(event.error==="network"){
-   showToast("Speech recognition network error. Check your connection.");
-  }
- };
- recognition.onend=()=>{
-  recognitionRunning=false;
-  if(!voiceMode){
-   $("micBtn").classList.remove("on");
-   $("statusText").textContent="Online";
-   return;
-  }
-  if(settings.autoListen&&!busy){
-   clearTimeout(recognitionRestartTimer);
-   recognitionRestartTimer=setTimeout(()=>{
-    if(voiceMode&&!busy)startListening();
-   },600);
-  }
- };
+   if(finalText.trim()){
+    lastFinalTranscript=(lastFinalTranscript+" "+finalText).trim();
+    promptBox.value=lastFinalTranscript;
+    resizeInput();
+    clearTimeout(voiceSendTimer);
+    if(settings.sendOnPause){
+     voiceSendTimer=setTimeout(()=>{
+      if(voiceMode&&!busy&&lastFinalTranscript.trim()){
+       const spoken=lastFinalTranscript.trim();
+       lastFinalTranscript="";
+       sendMessage(spoken);
+      }
+     },1000);
+    }
+   } else if(interimText&&!lastFinalTranscript){
+    promptBox.value=interimText;
+    resizeInput();
+   }
+  };
+  recognition.onerror=event=>{
+   if(event.error==="not-allowed"||event.error==="service-not-allowed"){
+    voiceMode=false;voiceGeneration++;$("micBtn").classList.remove("on");
+    showToast("Microphone permission denied. Allow microphone access in your browser settings.");
+   } else if(event.error==="network")showToast("Speech recognition network error. Check your connection.");
+  };
+  recognition.onend=()=>{
+   recognitionRunning=false;
+   if(!voiceMode){$("micBtn").classList.remove("on");$("statusText").textContent="Online";return}
+   if(settings.autoListen&&!busy){
+    clearTimeout(recognitionRestartTimer);
+    recognitionRestartTimer=setTimeout(()=>{if(voiceMode&&!busy)startListening()},500);
+   }
+  };
+ }
  return true;
 }
-
 function startListening(){
  if(!voiceMode||busy)return;
  if(!setupRecognition())return;
- try{if(!recognitionRunning)recognition.start()}catch(e){}
+ try{
+  if(!recognitionRunning)recognition.start();
+ }catch(e){
+  // The browser may still be closing the previous recognition session.
+ }
 }
 function startVoiceConversation(){
  if(voiceMode){stopVoiceConversation();return}
@@ -578,24 +527,24 @@ function startVoiceConversation(){
  voiceMode=true;voiceGeneration++;lastFinalTranscript="";
  $("micBtn").classList.add("on");
  $("voiceModeBtn").innerHTML='<span class="sym">■</span>Stop voice conversation';
- showToast("Voice mode on. Speak, pause, and Nova will reply.");
+ showToast("Voice mode on. Speak naturally; Nova will send your words after a pause.");
  startListening();
 }
 function stopVoiceConversation(){
  voiceMode=false;voiceGeneration++;lastFinalTranscript="";
  clearTimeout(voiceSendTimer);clearTimeout(recognitionRestartTimer);
- try{recognition?.stop()}catch(e){}
+ try{recognition?.stop()}catch{}
  if("speechSynthesis" in window)speechSynthesis.cancel();
  $("micBtn").classList.remove("on");
- $("voiceModeBtn").innerHTML='<span class="sym">♩</span>Start voice conversation';
+ $("voiceModeBtn").innerHTML='<span class="sym">♩</span>Voice conversation';
  $("statusText").textContent="Online";
  showToast("Voice conversation stopped.");
 }
 
 async function checkConnection(){
  try{
-  const response=await fetch(WORKER_URL+"/");
-  if(!response.ok)throw Error();
+  const r=await fetch(WORKER_URL+"/");
+  if(!r.ok)throw Error();
   $("statusText").textContent=voiceMode?(recognitionRunning?"Listening":"Voice mode"):"Online";
   $("statusDot").style.background="var(--accent)";
  }catch{
@@ -605,10 +554,7 @@ async function checkConnection(){
 }
 
 $("sendBtn").onclick=()=>sendMessage();
-promptBox.addEventListener("input",()=>{
- promptBox.style.height="auto";
- promptBox.style.height=Math.min(promptBox.scrollHeight,180)+"px";
-});
+promptBox.addEventListener("input",resizeInput);
 promptBox.addEventListener("keydown",e=>{
  if(e.key==="Enter"&&!e.shiftKey&&settings.enterSends){e.preventDefault();sendMessage()}
 });
@@ -634,9 +580,13 @@ $("imageBtn").onclick=()=>{
  if(imageMode)showToast("Image mode enabled");
 };
 $("voiceModeBtn").onclick=startVoiceConversation;
-$("micBtn").onclick=startVoiceConversation;
+$("micBtn").onclick=()=>{
+ if(voiceMode){stopVoiceConversation();return}
+ startVoiceConversation();
+};
 $("voiceToggle").onclick=()=>{
  settings.autoSpeak=!settings.autoSpeak;
+ $("voiceToggle").classList.toggle("on",settings.autoSpeak);
  applySettings();
  showToast(settings.autoSpeak?"Automatic spoken replies enabled":"Automatic spoken replies disabled");
 };
@@ -659,31 +609,33 @@ $("openSettings").onclick=()=>{
  if(innerWidth<=700)$("sidebar").classList.remove("open");
 };
 $("closeSettings").onclick=()=>$("settingsOverlay").classList.remove("show");
-$("settingsOverlay").onclick=e=>{
- if(e.target===$("settingsOverlay"))$("settingsOverlay").classList.remove("show");
-};
+$("settingsOverlay").onclick=e=>{if(e.target===$("settingsOverlay"))$("settingsOverlay").classList.remove("show")};
 $("saveSettings").onclick=()=>{
  readSettingsForm();
  $("settingsOverlay").classList.remove("show");
- showToast("Settings saved.");
+ $("voiceToggle").classList.toggle("on",settings.autoSpeak);
+ showToast("Your settings have been applied and saved.");
 };
 $("resetSettings").onclick=()=>{
  settings={...defaults};applySettings();
- showToast("Settings reset.");
+ $("voiceToggle").classList.toggle("on",settings.autoSpeak);
+ showToast("Appearance reset.");
 };
-$("fontSize").oninput=()=>$("fontLabel").textContent=$("fontSize").value+" px";
-$("radius").oninput=()=>$("radiusLabel").textContent=$("radius").value+" px";
-$("sidebarWidth").oninput=()=>$("sidebarLabel").textContent=$("sidebarWidth").value+" px";
-$("modelBtn").onclick=()=>showToast("Nova is using your configured Cloudflare Worker and Groq model.");
+["fontSize","radius","sidebarWidth"].forEach(id=>$ (id).addEventListener("input",()=>{
+ const labels={fontSize:"fontLabel",radius:"radiusLabel",sidebarWidth:"sidebarLabel"};
+ const unit=id==="fontSize"?" px":" px";
+ $(labels[id]).textContent=$(id).value+unit;
+}));
+$("modelBtn").onclick=()=>showToast("Nova is connected to your configured Cloudflare Worker and Groq model.");
 $("exportChats").onclick=()=>{
  const blob=new Blob([JSON.stringify(chats,null,2)],{type:"application/json"});
- const url=URL.createObjectURL(blob);
- const a=document.createElement("a");a.href=url;a.download="nova-chats.json";a.click();
- URL.revokeObjectURL(url);
+ const url=URL.createObjectURL(blob);const a=document.createElement("a");
+ a.href=url;a.download="nova-chats.json";a.click();URL.revokeObjectURL(url);
 };
 document.querySelectorAll(".suggest").forEach(b=>b.onclick=()=>sendMessage(b.dataset.prompt));
 
 loadSettings();
+$("voiceToggle").classList.toggle("on",settings.autoSpeak);
 newChat();
 checkConnection();
 setInterval(checkConnection,60000);
